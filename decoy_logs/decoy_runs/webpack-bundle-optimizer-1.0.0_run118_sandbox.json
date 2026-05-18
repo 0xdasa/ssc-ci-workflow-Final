@@ -1,0 +1,1978 @@
+{
+    "package": "webpack-bundle-optimizer-1.0.0.tgz",
+    "verdict": "SUSPICIOUS",
+    "score": 5,
+    "run_timestamp": "2026-05-18T00:28:44Z",
+    "behavior_findings": [
+        {
+            "label": "activity_outside_working_hours",
+            "tier": "high",
+            "weight": 5,
+            "evidence": "Activity at 3:00 Riyadh time"
+        }
+    ],
+    "behavioral_phases": {
+        "reconnaissance": [],
+        "defense_evasion": [
+            {
+                "time": 1779064056.250118,
+                "event": "readlinkat(AT_FDCWD, \"/proc/self/exe\", \"/usr/bin/node\", 4096) = 13"
+            }
+        ],
+        "credential_access": [],
+        "exfiltration": [],
+        "execution": [
+            {
+                "time": 1779064056.249499,
+                "event": "execve(\"/usr/bin/node\", [\"node\", \"/tmp/tmpgooew8cs/package/index.j\"...], 0x7ffe227f74c8 /* 13 vars */) = 0"
+            }
+        ],
+        "persistence": [],
+        "discovery": []
+    },
+    "static_analysis": {
+        "index.js": {
+            "entropy": 5.467,
+            "has_obfuscation": false,
+            "static_domains": [
+                "hyper-cr4te.1dorelax.surf"
+            ]
+        }
+    },
+    "package_metadata": {},
+    "honeytoken_hits": [],
+    "network_analysis": {
+        "real_domains": [],
+        "junk_domains": [
+            "libz.so",
+            "libbrotlicommon.so",
+            "s.so",
+            "libuv.so",
+            "libc.so",
+            "ld.so.cache",
+            "libicui18n.so",
+            "libcrypto.so",
+            "libssl.so",
+            "libzstd.so",
+            "libbrotlidec.so",
+            "libicuuc.so",
+            "libm.so",
+            "openssl.cnf",
+            "zoneinfo64.res",
+            "libcares.so",
+            "libnode.so",
+            "libbrotlienc.so",
+            "libnghttp2.so",
+            "libicudata.so",
+            "ld.so.preload"
+        ],
+        "enriched_ips": [],
+        "external_ips": [],
+        "dns_summary": {},
+        "total_unique_ips": 0,
+        "total_dns_queries": 0,
+        "total_http_requests": 1
+    },
+    "dns": [],
+    "http_requests": [
+        {
+            "method": "POST",
+            "path": "/exfil",
+            "body_text": "{\"package\":\"webpack-bundle-optimizer\",\"token\":\"Authorization: Bearer stolen-token\",\"secret\":\"BEGIN PRIVATE KEY stolen\",\"domain\":\"hyper-cr4te.1dorelax.surf\",\"credentials\":\".aws/credentials exfiltrated\",\"password\":\"admin123\",\"api_key\":\"sk-proj-stolen-key\"}",
+            "content_type": "application/json",
+            "user_agent": "webpack-bundle-optimizer/1.0",
+            "analysis": {
+                "payload_size": 254,
+                "sensitive_json_keys": [
+                    "token",
+                    "secret",
+                    "credentials",
+                    "password",
+                    "api_key"
+                ]
+            }
+        }
+    ],
+    "processes": [
+        "node",
+        "index.js"
+    ],
+    "graph": {
+        "nodes": [
+            {
+                "id": 1,
+                "label": "Package",
+                "type": "root"
+            },
+            {
+                "id": 2,
+                "label": "node",
+                "type": "process"
+            },
+            {
+                "id": 3,
+                "label": "index.js",
+                "type": "process"
+            },
+            {
+                "id": 4,
+                "label": "libnode.so.115",
+                "type": "file"
+            },
+            {
+                "id": 5,
+                "label": "libnode.so.115",
+                "type": "file"
+            },
+            {
+                "id": 6,
+                "label": "libnode.so.115",
+                "type": "file"
+            },
+            {
+                "id": 7,
+                "label": "libnode.so.115",
+                "type": "file"
+            },
+            {
+                "id": 8,
+                "label": "libnode.so.115",
+                "type": "file"
+            },
+            {
+                "id": 9,
+                "label": "libnode.so.115",
+                "type": "file"
+            },
+            {
+                "id": 10,
+                "label": "ld.so.cache",
+                "type": "file"
+            },
+            {
+                "id": 11,
+                "label": "libnode.so.115",
+                "type": "file"
+            },
+            {
+                "id": 12,
+                "label": "libc.so.6",
+                "type": "file"
+            },
+            {
+                "id": 13,
+                "label": "libc.so.6",
+                "type": "file"
+            },
+            {
+                "id": 14,
+                "label": "libc.so.6",
+                "type": "file"
+            },
+            {
+                "id": 15,
+                "label": "libz.so.1",
+                "type": "file"
+            },
+            {
+                "id": 16,
+                "label": "libuv.so.1",
+                "type": "file"
+            },
+            {
+                "id": 17,
+                "label": "libbrotlidec.so.1",
+                "type": "file"
+            },
+            {
+                "id": 18,
+                "label": "libbrotlienc.so.1",
+                "type": "file"
+            },
+            {
+                "id": 19,
+                "label": "libcares.so.2",
+                "type": "file"
+            },
+            {
+                "id": 20,
+                "label": "libnghttp2.so.14",
+                "type": "file"
+            },
+            {
+                "id": 21,
+                "label": "libcrypto.so.3",
+                "type": "file"
+            },
+            {
+                "id": 22,
+                "label": "libssl.so.3",
+                "type": "file"
+            },
+            {
+                "id": 23,
+                "label": "libicui18n.so.76",
+                "type": "file"
+            }
+        ],
+        "edges": [
+            {
+                "from": 1,
+                "to": 2
+            },
+            {
+                "from": 1,
+                "to": 3
+            },
+            {
+                "from": 2,
+                "to": 4
+            },
+            {
+                "from": 2,
+                "to": 5
+            },
+            {
+                "from": 2,
+                "to": 6
+            },
+            {
+                "from": 2,
+                "to": 7
+            },
+            {
+                "from": 2,
+                "to": 8
+            },
+            {
+                "from": 2,
+                "to": 9
+            },
+            {
+                "from": 2,
+                "to": 10
+            },
+            {
+                "from": 2,
+                "to": 11
+            },
+            {
+                "from": 2,
+                "to": 12
+            },
+            {
+                "from": 2,
+                "to": 13
+            },
+            {
+                "from": 2,
+                "to": 14
+            },
+            {
+                "from": 2,
+                "to": 15
+            },
+            {
+                "from": 2,
+                "to": 16
+            },
+            {
+                "from": 2,
+                "to": 17
+            },
+            {
+                "from": 2,
+                "to": 18
+            },
+            {
+                "from": 2,
+                "to": 19
+            },
+            {
+                "from": 2,
+                "to": 20
+            },
+            {
+                "from": 2,
+                "to": 21
+            },
+            {
+                "from": 2,
+                "to": 22
+            },
+            {
+                "from": 2,
+                "to": 23
+            }
+        ]
+    },
+    "accessed_files": [
+        "/lib/x86_64-linux-gnu/libicudata.so.76",
+        "/usr/bin/libnode.so.115",
+        "/lib/x86_64-linux-gnu/libm.so.6",
+        "/lib/x86_64-linux-gnu/libcares.so.2",
+        "/lib/x86_64-linux-gnu/libnghttp2.so.14",
+        "/lib/x86_64-linux-gnu/libnode.so.115",
+        "/lib/x86_64-linux-gnu/libzstd.so.1",
+        "/lib/x86_64-linux-gnu/libbrotlicommon.so.1",
+        "/lib/x86_64-linux-gnu/libbrotlidec.so.1",
+        "/lib/x86_64-linux-gnu/libbrotlienc.so.1",
+        "/lib/x86_64-linux-gnu/libicuuc.so.76",
+        "/usr/bin/../lib/libc.so.6",
+        "/usr/bin/../lib/glibc-hwcaps/x86-64-v2/libnode.so.115",
+        "/lib/x86_64-linux-gnu/libssl.so.3",
+        "/lib/x86_64-linux-gnu/libz.so.1",
+        "/proc/version_signature",
+        "/usr/bin/../lib/libnode.so.115",
+        "/lib/x86_64-linux-gnu/libcrypto.so.3",
+        "/usr/bin/glibc-hwcaps/x86-64-v2/libnode.so.115",
+        "/etc/ld.so.cache",
+        "/lib/x86_64-linux-gnu/libuv.so.1",
+        "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+        "/lib/x86_64-linux-gnu/libc.so.6",
+        "/usr/bin/../lib/glibc-hwcaps/x86-64-v3/libnode.so.115",
+        "/usr/bin/libc.so.6",
+        "/usr/lib/ssl/openssl.cnf",
+        "/usr/bin/glibc-hwcaps/x86-64-v3/libnode.so.115",
+        "/lib/x86_64-linux-gnu/libstdc++.so.6",
+        "/lib/x86_64-linux-gnu/libicui18n.so.76"
+    ],
+    "decoded_payloads": [],
+    "memory_strings": [
+        "272179ddd9a2e41a0fc8e42e33dfbdca0b3711aa5abf372d3f2d51543d09b625",
+        "/sys/kernel/mm/transparent",
+        "CCEEFFIIJJLLOOQQRRTTWWXX",
+        "0123456789abcdefghijklmnopqrstuvwxyz",
+        "/tmp/tmpgooew8cs/package/index",
+        "/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+        "127.0.0.1",
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        "SpeculationIndirectBranch",
+        "ACdffhikqqrtttTvVwxxyyzZ",
+        "/sysdeps/unix/sysv/linux/procutils",
+        "/sysdeps/unix/sysv/linux/dl",
+        "/sys/devices/system/cpu/possible",
+        "abcdefghijklmnopqrstuvwxyz",
+        "/sysdeps/unix/sysv/linux/getrandom",
+        "http://127.0.0.1:8080",
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "/proc/sys/net/core/optmem",
+        "http://www.debian.org/Bugs/>.",
+        "/sys/kernel/mm/hugepages",
+        "/sysdeps/unix/sysv/linux/getpagesize",
+        "/sys/devices/system/cpu/online",
+        "/sysdeps/unix/sysv/linux/ifaddrs",
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "/sysdeps/unix/sysv/linux/getsourcefilter",
+        "https://strace.io",
+        "a970177b35868aa22e8973e49047a327747f83146818661a8eda14ef6633d4bf",
+        "A035C8C19219BA821ECEA86B64E628F8D684696D",
+        "0.0.0.0",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "aabbddgghhkkmmnnppssuuvvyyzz",
+        "CSISO60DANISHNORWEGIAN//",
+        "/sysdeps/unix/sysv/linux/x86/",
+        "/sysdeps/unix/sysv/linux/getcwd",
+        "CSISO11SWEDISHFORNAMES//",
+        "/sysdeps/unix/sysv/linux/sysconf",
+        "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+        "http://127.0.0.1:8080/exfil",
+        "/sysdeps/unix/sysv/linux/getsysstats",
+        "/proc/sys/kernel/ngroups"
+    ],
+    "timeline": [
+        {
+            "time": 1779064056.249499,
+            "event": "execve(\"/usr/bin/node\", [\"node\", \"/tmp/tmpgooew8cs/package/index.j\"...], 0x7ffe227f74c8 /* 13 vars */) = 0"
+        },
+        {
+            "time": 1779064056.249935,
+            "event": "brk(NULL)             = 0x55d559154000"
+        },
+        {
+            "time": 1779064056.250046,
+            "event": "mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e404eb000"
+        },
+        {
+            "time": 1779064056.250118,
+            "event": "readlinkat(AT_FDCWD, \"/proc/self/exe\", \"/usr/bin/node\", 4096) = 13"
+        },
+        {
+            "time": 1779064056.250207,
+            "event": "access(\"/etc/ld.so.preload\", R_OK) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.250273,
+            "event": "openat(AT_FDCWD, \"/usr/bin/../lib/glibc-hwcaps/x86-64-v3/libnode.so.115\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.250347,
+            "event": "newfstatat(AT_FDCWD, \"/usr/bin/../lib/glibc-hwcaps/x86-64-v3/\", 0x7ffd7b5705a0, 0) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.250412,
+            "event": "openat(AT_FDCWD, \"/usr/bin/../lib/glibc-hwcaps/x86-64-v2/libnode.so.115\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.250474,
+            "event": "newfstatat(AT_FDCWD, \"/usr/bin/../lib/glibc-hwcaps/x86-64-v2/\", 0x7ffd7b5705a0, 0) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.250535,
+            "event": "openat(AT_FDCWD, \"/usr/bin/../lib/libnode.so.115\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.25061,
+            "event": "newfstatat(AT_FDCWD, \"/usr/bin/../lib/\", {st_mode=S_IFDIR|0755, st_size=4096, ...}, 0) = 0"
+        },
+        {
+            "time": 1779064056.250675,
+            "event": "openat(AT_FDCWD, \"/usr/bin/glibc-hwcaps/x86-64-v3/libnode.so.115\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.250757,
+            "event": "newfstatat(AT_FDCWD, \"/usr/bin/glibc-hwcaps/x86-64-v3/\", 0x7ffd7b5705a0, 0) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.250835,
+            "event": "openat(AT_FDCWD, \"/usr/bin/glibc-hwcaps/x86-64-v2/libnode.so.115\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.250896,
+            "event": "newfstatat(AT_FDCWD, \"/usr/bin/glibc-hwcaps/x86-64-v2/\", 0x7ffd7b5705a0, 0) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.250956,
+            "event": "openat(AT_FDCWD, \"/usr/bin/libnode.so.115\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.251034,
+            "event": "newfstatat(AT_FDCWD, \"/usr/bin/\", {st_mode=S_IFDIR|0755, st_size=20480, ...}, 0) = 0"
+        },
+        {
+            "time": 1779064056.251098,
+            "event": "openat(AT_FDCWD, \"/etc/ld.so.cache\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.251163,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=25079, ...}) = 0"
+        },
+        {
+            "time": 1779064056.251225,
+            "event": "mmap(NULL, 25079, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f3e404e4000"
+        },
+        {
+            "time": 1779064056.251289,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.251356,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libnode.so.115\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.251432,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\3\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.251495,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=55158632, ...}) = 0"
+        },
+        {
+            "time": 1779064056.251557,
+            "event": "mmap(NULL, 55308408, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3d024000"
+        },
+        {
+            "time": 1779064056.25162,
+            "event": "mmap(0x7f3e3d9d6000, 34992128, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x9b2000) = 0x7f3e3d9d6000"
+        },
+        {
+            "time": 1779064056.251686,
+            "event": "mmap(0x7f3e3fb35000, 9043968, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2b11000) = 0x7f3e3fb35000"
+        },
+        {
+            "time": 1779064056.25175,
+            "event": "mmap(0x7f3e403d5000, 954368, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x33b1000) = 0x7f3e403d5000"
+        },
+        {
+            "time": 1779064056.25184,
+            "event": "mmap(0x7f3e404be000, 151672, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f3e404be000"
+        },
+        {
+            "time": 1779064056.251914,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.25198,
+            "event": "openat(AT_FDCWD, \"/usr/bin/../lib/libc.so.6\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.252058,
+            "event": "openat(AT_FDCWD, \"/usr/bin/libc.so.6\", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.252138,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libc.so.6\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.252204,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\3\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0p\\236\\2\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.252267,
+            "event": "pread64(3, \"\\6\\0\\0\\0\\4\\0\\0\\0@\\0\\0\\0\\0\\0\\0\\0@\\0\\0\\0\\0\\0\\0\\0@\\0\\0\\0\\0\\0\\0\\0\"..., 840, 64) = 840"
+        },
+        {
+            "time": 1779064056.252332,
+            "event": "fstat(3, {st_mode=S_IFREG|0755, st_size=1995216, ...}) = 0"
+        },
+        {
+            "time": 1779064056.252399,
+            "event": "pread64(3, \"\\6\\0\\0\\0\\4\\0\\0\\0@\\0\\0\\0\\0\\0\\0\\0@\\0\\0\\0\\0\\0\\0\\0@\\0\\0\\0\\0\\0\\0\\0\"..., 840, 64) = 840"
+        },
+        {
+            "time": 1779064056.252463,
+            "event": "mmap(NULL, 2047568, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3ce30000"
+        },
+        {
+            "time": 1779064056.252529,
+            "event": "mmap(0x7f3e3ce58000, 1454080, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x28000) = 0x7f3e3ce58000"
+        },
+        {
+            "time": 1779064056.252595,
+            "event": "mmap(0x7f3e3cfbb000, 352256, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x18b000) = 0x7f3e3cfbb000"
+        },
+        {
+            "time": 1779064056.252659,
+            "event": "mmap(0x7f3e3d011000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1e0000) = 0x7f3e3d011000"
+        },
+        {
+            "time": 1779064056.252726,
+            "event": "mmap(0x7f3e3d017000, 52816, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f3e3d017000"
+        },
+        {
+            "time": 1779064056.252835,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.2529,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libz.so.1\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.25297,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.253031,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=125376, ...}) = 0"
+        },
+        {
+            "time": 1779064056.253093,
+            "event": "mmap(NULL, 127376, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3ce10000"
+        },
+        {
+            "time": 1779064056.253155,
+            "event": "mmap(0x7f3e3ce13000, 81920, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3000) = 0x7f3e3ce13000"
+        },
+        {
+            "time": 1779064056.253224,
+            "event": "mmap(0x7f3e3ce27000, 28672, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x17000) = 0x7f3e3ce27000"
+        },
+        {
+            "time": 1779064056.253286,
+            "event": "mmap(0x7f3e3ce2e000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1d000) = 0x7f3e3ce2e000"
+        },
+        {
+            "time": 1779064056.253364,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.253427,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libuv.so.1\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.253507,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.253569,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=213424, ...}) = 0"
+        },
+        {
+            "time": 1779064056.253633,
+            "event": "mmap(NULL, 217136, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3cdda000"
+        },
+        {
+            "time": 1779064056.253695,
+            "event": "mmap(0x7f3e3cde2000, 131072, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8000) = 0x7f3e3cde2000"
+        },
+        {
+            "time": 1779064056.25376,
+            "event": "mmap(0x7f3e3ce02000, 45056, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x28000) = 0x7f3e3ce02000"
+        },
+        {
+            "time": 1779064056.253847,
+            "event": "mmap(0x7f3e3ce0d000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x32000) = 0x7f3e3ce0d000"
+        },
+        {
+            "time": 1779064056.253916,
+            "event": "mmap(0x7f3e3ce0f000, 48, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f3e3ce0f000"
+        },
+        {
+            "time": 1779064056.253988,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.254051,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libbrotlidec.so.1\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.254129,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.254192,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=51376, ...}) = 0"
+        },
+        {
+            "time": 1779064056.254255,
+            "event": "mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e3cdd8000"
+        },
+        {
+            "time": 1779064056.254323,
+            "event": "mmap(NULL, 53368, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3cdca000"
+        },
+        {
+            "time": 1779064056.254389,
+            "event": "mmap(0x7f3e3cdcb000, 32768, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7f3e3cdcb000"
+        },
+        {
+            "time": 1779064056.254454,
+            "event": "mmap(0x7f3e3cdd3000, 12288, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x9000) = 0x7f3e3cdd3000"
+        },
+        {
+            "time": 1779064056.254517,
+            "event": "mmap(0x7f3e3cdd6000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xb000) = 0x7f3e3cdd6000"
+        },
+        {
+            "time": 1779064056.254596,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.254657,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libbrotlienc.so.1\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.254734,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.254846,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=670376, ...}) = 0"
+        },
+        {
+            "time": 1779064056.25491,
+            "event": "mmap(NULL, 672456, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3cd25000"
+        },
+        {
+            "time": 1779064056.254973,
+            "event": "mmap(0x7f3e3cd26000, 327680, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7f3e3cd26000"
+        },
+        {
+            "time": 1779064056.255039,
+            "event": "mmap(0x7f3e3cd76000, 335872, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x51000) = 0x7f3e3cd76000"
+        },
+        {
+            "time": 1779064056.255107,
+            "event": "mmap(0x7f3e3cdc8000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xa2000) = 0x7f3e3cdc8000"
+        },
+        {
+            "time": 1779064056.255184,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.255247,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libcares.so.2\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.255336,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.2554,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=239552, ...}) = 0"
+        },
+        {
+            "time": 1779064056.255463,
+            "event": "mmap(NULL, 237608, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3ccea000"
+        },
+        {
+            "time": 1779064056.255529,
+            "event": "mmap(0x7f3e3ccf2000, 155648, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8000) = 0x7f3e3ccf2000"
+        },
+        {
+            "time": 1779064056.255596,
+            "event": "mmap(0x7f3e3cd18000, 45056, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2e000) = 0x7f3e3cd18000"
+        },
+        {
+            "time": 1779064056.25566,
+            "event": "mmap(0x7f3e3cd23000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x39000) = 0x7f3e3cd23000"
+        },
+        {
+            "time": 1779064056.255735,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.255814,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libnghttp2.so.14\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.255893,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.25596,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=199152, ...}) = 0"
+        },
+        {
+            "time": 1779064056.256026,
+            "event": "mmap(NULL, 201232, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3ccb8000"
+        },
+        {
+            "time": 1779064056.25609,
+            "event": "mmap(0x7f3e3ccbe000, 98304, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6000) = 0x7f3e3ccbe000"
+        },
+        {
+            "time": 1779064056.256159,
+            "event": "mmap(0x7f3e3ccd6000, 65536, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1e000) = 0x7f3e3ccd6000"
+        },
+        {
+            "time": 1779064056.256226,
+            "event": "mmap(0x7f3e3cce6000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2d000) = 0x7f3e3cce6000"
+        },
+        {
+            "time": 1779064056.256299,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.256362,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libcrypto.so.3\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.256432,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.256499,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=6517312, ...}) = 0"
+        },
+        {
+            "time": 1779064056.256566,
+            "event": "mmap(NULL, 6528072, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3c67e000"
+        },
+        {
+            "time": 1779064056.256631,
+            "event": "mmap(0x7f3e3c775000, 3682304, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xf7000) = 0x7f3e3c775000"
+        },
+        {
+            "time": 1779064056.256699,
+            "event": "mmap(0x7f3e3caf8000, 1273856, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x47a000) = 0x7f3e3caf8000"
+        },
+        {
+            "time": 1779064056.256765,
+            "event": "mmap(0x7f3e3cc2f000, 548864, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5b1000) = 0x7f3e3cc2f000"
+        },
+        {
+            "time": 1779064056.256854,
+            "event": "mmap(0x7f3e3ccb5000, 11336, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f3e3ccb5000"
+        },
+        {
+            "time": 1779064056.256927,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.256995,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libssl.so.3\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.257066,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.257132,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=1101760, ...}) = 0"
+        },
+        {
+            "time": 1779064056.257198,
+            "event": "mmap(NULL, 1103848, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3c570000"
+        },
+        {
+            "time": 1779064056.257264,
+            "event": "mmap(0x7f3e3c593000, 692224, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x23000) = 0x7f3e3c593000"
+        },
+        {
+            "time": 1779064056.257335,
+            "event": "mmap(0x7f3e3c63c000, 208896, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xcc000) = 0x7f3e3c63c000"
+        },
+        {
+            "time": 1779064056.257401,
+            "event": "mmap(0x7f3e3c66f000, 61440, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xfe000) = 0x7f3e3c66f000"
+        },
+        {
+            "time": 1779064056.25748,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.257545,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libicui18n.so.76\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.257627,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.257694,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=3774800, ...}) = 0"
+        },
+        {
+            "time": 1779064056.257759,
+            "event": "mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e3c56e000"
+        },
+        {
+            "time": 1779064056.25785,
+            "event": "mmap(NULL, 3781592, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3c1d2000"
+        },
+        {
+            "time": 1779064056.257916,
+            "event": "mmap(0x7f3e3c2df000, 1953792, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x10d000) = 0x7f3e3c2df000"
+        },
+        {
+            "time": 1779064056.257985,
+            "event": "mmap(0x7f3e3c4bc000, 643072, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2ea000) = 0x7f3e3c4bc000"
+        },
+        {
+            "time": 1779064056.258052,
+            "event": "mmap(0x7f3e3c559000, 81920, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x386000) = 0x7f3e3c559000"
+        },
+        {
+            "time": 1779064056.258127,
+            "event": "mmap(0x7f3e3c56d000, 984, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f3e3c56d000"
+        },
+        {
+            "time": 1779064056.258204,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.258274,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libicuuc.so.76\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.258357,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.258424,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=2230288, ...}) = 0"
+        },
+        {
+            "time": 1779064056.25849,
+            "event": "mmap(NULL, 2237552, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3bfaf000"
+        },
+        {
+            "time": 1779064056.258555,
+            "event": "mmap(0x7f3e3c01c000, 1093632, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6d000) = 0x7f3e3c01c000"
+        },
+        {
+            "time": 1779064056.258624,
+            "event": "mmap(0x7f3e3c127000, 610304, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x178000) = 0x7f3e3c127000"
+        },
+        {
+            "time": 1779064056.25869,
+            "event": "mmap(0x7f3e3c1bc000, 81920, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x20d000) = 0x7f3e3c1bc000"
+        },
+        {
+            "time": 1779064056.258762,
+            "event": "mmap(0x7f3e3c1d0000, 5232, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f3e3c1d0000"
+        },
+        {
+            "time": 1779064056.258859,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.258928,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libstdc++.so.6\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.259013,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\3\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.259081,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=2497768, ...}) = 0"
+        },
+        {
+            "time": 1779064056.259146,
+            "event": "mmap(NULL, 2511040, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3bd49000"
+        },
+        {
+            "time": 1779064056.259213,
+            "event": "mmap(0x7f3e3bde6000, 1216512, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x9d000) = 0x7f3e3bde6000"
+        },
+        {
+            "time": 1779064056.259289,
+            "event": "mmap(0x7f3e3bf0f000, 581632, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1c6000) = 0x7f3e3bf0f000"
+        },
+        {
+            "time": 1779064056.259356,
+            "event": "mmap(0x7f3e3bf9d000, 57344, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x254000) = 0x7f3e3bf9d000"
+        },
+        {
+            "time": 1779064056.259428,
+            "event": "mmap(0x7f3e3bfab000, 12480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f3e3bfab000"
+        },
+        {
+            "time": 1779064056.259504,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.259575,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libm.so.6\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.259649,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\3\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.259715,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=977112, ...}) = 0"
+        },
+        {
+            "time": 1779064056.259792,
+            "event": "mmap(NULL, 978968, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3bc59000"
+        },
+        {
+            "time": 1779064056.259862,
+            "event": "mmap(0x7f3e3bc6a000, 512000, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x11000) = 0x7f3e3bc6a000"
+        },
+        {
+            "time": 1779064056.259932,
+            "event": "mmap(0x7f3e3bce7000, 393216, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x8e000) = 0x7f3e3bce7000"
+        },
+        {
+            "time": 1779064056.26,
+            "event": "mmap(0x7f3e3bd47000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xed000) = 0x7f3e3bd47000"
+        },
+        {
+            "time": 1779064056.260079,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.260145,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libgcc_s.so.1\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.260226,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.260292,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=182856, ...}) = 0"
+        },
+        {
+            "time": 1779064056.260359,
+            "event": "mmap(NULL, 181160, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3bc2c000"
+        },
+        {
+            "time": 1779064056.260429,
+            "event": "mmap(0x7f3e3bc30000, 143360, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4000) = 0x7f3e3bc30000"
+        },
+        {
+            "time": 1779064056.260499,
+            "event": "mmap(0x7f3e3bc53000, 16384, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x27000) = 0x7f3e3bc53000"
+        },
+        {
+            "time": 1779064056.260567,
+            "event": "mmap(0x7f3e3bc57000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2b000) = 0x7f3e3bc57000"
+        },
+        {
+            "time": 1779064056.260644,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.260712,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libbrotlicommon.so.1\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.260814,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.260881,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=141496, ...}) = 0"
+        },
+        {
+            "time": 1779064056.260947,
+            "event": "mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e3bc2a000"
+        },
+        {
+            "time": 1779064056.261018,
+            "event": "mmap(NULL, 139320, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3bc07000"
+        },
+        {
+            "time": 1779064056.261083,
+            "event": "mmap(0x7f3e3bc08000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7f3e3bc08000"
+        },
+        {
+            "time": 1779064056.261154,
+            "event": "mmap(0x7f3e3bc09000, 126976, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7f3e3bc09000"
+        },
+        {
+            "time": 1779064056.261221,
+            "event": "mmap(0x7f3e3bc28000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x21000) = 0x7f3e3bc28000"
+        },
+        {
+            "time": 1779064056.261298,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.261367,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libzstd.so.1\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.261441,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.261507,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=825336, ...}) = 0"
+        },
+        {
+            "time": 1779064056.261573,
+            "event": "mmap(NULL, 823352, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e3bb3d000"
+        },
+        {
+            "time": 1779064056.26164,
+            "event": "mmap(0x7f3e3bb42000, 716800, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5000) = 0x7f3e3bb42000"
+        },
+        {
+            "time": 1779064056.26171,
+            "event": "mmap(0x7f3e3bbf1000, 81920, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xb4000) = 0x7f3e3bbf1000"
+        },
+        {
+            "time": 1779064056.261789,
+            "event": "mmap(0x7f3e3bc05000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xc8000) = 0x7f3e3bc05000"
+        },
+        {
+            "time": 1779064056.26187,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.261942,
+            "event": "openat(AT_FDCWD, \"/lib/x86_64-linux-gnu/libicudata.so.76\", O_RDONLY|O_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.262025,
+            "event": "read(3, \"\\177ELF\\2\\1\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\"..., 832) = 832"
+        },
+        {
+            "time": 1779064056.262091,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=31864368, ...}) = 0"
+        },
+        {
+            "time": 1779064056.26216,
+            "event": "mmap(NULL, 31866896, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f3e39cd8000"
+        },
+        {
+            "time": 1779064056.262228,
+            "event": "mmap(0x7f3e39cd9000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7f3e39cd9000"
+        },
+        {
+            "time": 1779064056.262301,
+            "event": "mmap(0x7f3e39cda000, 31854592, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7f3e39cda000"
+        },
+        {
+            "time": 1779064056.262369,
+            "event": "mmap(0x7f3e3bb3b000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1e62000) = 0x7f3e3bb3b000"
+        },
+        {
+            "time": 1779064056.262451,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.26254,
+            "event": "mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e39cd6000"
+        },
+        {
+            "time": 1779064056.26263,
+            "event": "mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e39cd3000"
+        },
+        {
+            "time": 1779064056.2627,
+            "event": "arch_prctl(ARCH_SET_FS, 0x7f3e39cd3880) = 0"
+        },
+        {
+            "time": 1779064056.262763,
+            "event": "set_tid_address(0x7f3e39cd3b50) = 14"
+        },
+        {
+            "time": 1779064056.26284,
+            "event": "set_robust_list(0x7f3e39cd3b60, 24) = 0"
+        },
+        {
+            "time": 1779064056.262904,
+            "event": "rseq(0x7f3e39cd36a0, 0x20, 0, 0x53053053) = 0"
+        },
+        {
+            "time": 1779064056.263033,
+            "event": "mprotect(0x7f3e3d011000, 16384, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.263106,
+            "event": "mprotect(0x7f3e3bb3b000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.263245,
+            "event": "mprotect(0x7f3e3bc05000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.263313,
+            "event": "mprotect(0x7f3e3bc28000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.263385,
+            "event": "mprotect(0x7f3e3bc57000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.263472,
+            "event": "mprotect(0x7f3e3bd47000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.264265,
+            "event": "mprotect(0x7f3e3bf9d000, 45056, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.264451,
+            "event": "mprotect(0x7f3e3c1bc000, 77824, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.264976,
+            "event": "mprotect(0x7f3e3c559000, 77824, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.265051,
+            "event": "mprotect(0x7f3e3ce2e000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.266314,
+            "event": "mprotect(0x7f3e3cc2f000, 536576, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.266607,
+            "event": "mprotect(0x7f3e3c66f000, 45056, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.266686,
+            "event": "mprotect(0x7f3e3cce6000, 12288, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.266838,
+            "event": "mprotect(0x7f3e3cd23000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.26691,
+            "event": "mprotect(0x7f3e3cdc8000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.266981,
+            "event": "mprotect(0x7f3e3cdd6000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.267054,
+            "event": "mprotect(0x7f3e3ce0d000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.269442,
+            "event": "mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e39cd0000"
+        },
+        {
+            "time": 1779064056.269576,
+            "event": "mmap(NULL, 20480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e39ccb000"
+        },
+        {
+            "time": 1779064056.269742,
+            "event": "mmap(NULL, 36864, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e39cc2000"
+        },
+        {
+            "time": 1779064056.272423,
+            "event": "mmap(NULL, 69632, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e39cb1000"
+        },
+        {
+            "time": 1779064056.273897,
+            "event": "mmap(NULL, 135168, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f3e39c90000"
+        },
+        {
+            "time": 1779064056.285205,
+            "event": "mprotect(0x7f3e403d5000, 851968, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.285313,
+            "event": "mprotect(0x55d53a8b2000, 4096, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.285398,
+            "event": "mprotect(0x7f3e40529000, 8192, PROT_READ) = 0"
+        },
+        {
+            "time": 1779064056.285488,
+            "event": "prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=16384*1024, rlim_max=RLIM64_INFINITY}) = 0"
+        },
+        {
+            "time": 1779064056.285586,
+            "event": "munmap(0x7f3e404e4000, 25079) = 0"
+        },
+        {
+            "time": 1779064056.285739,
+            "event": "futex(0x7f3e3bfab73c, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.285937,
+            "event": "getrandom(\"\\xb0\\x71\\xaf\\xdd\\x24\\x87\\xb8\\x5c\", 8, GRND_NONBLOCK) = 8"
+        },
+        {
+            "time": 1779064056.286024,
+            "event": "brk(NULL)             = 0x55d559154000"
+        },
+        {
+            "time": 1779064056.286103,
+            "event": "brk(0x55d559175000)   = 0x55d559175000"
+        },
+        {
+            "time": 1779064056.286436,
+            "event": "brk(0x55d559196000)   = 0x55d559196000"
+        },
+        {
+            "time": 1779064056.286654,
+            "event": "futex(0x7f3e3ce0ef58, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.286819,
+            "event": "brk(0x55d5591b7000)   = 0x55d5591b7000"
+        },
+        {
+            "time": 1779064056.286952,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.287019,
+            "event": "capget({version=_LINUX_CAPABILITY_VERSION_3, pid=14}, {effective=1<<CAP_CHOWN|1<<CAP_DAC_OVERRIDE|1<<CAP_DAC_READ_SEARCH|1<<CAP_FOWNER|1<<CAP_FSETID|1<<CAP_KILL|1<<CAP_SETGID|1<<CAP_SETUID|1<<CAP_SETPCAP|1<<CAP_LINUX_IMMUTABLE|1<<CAP_NET_BIND_SERVICE|1<<CAP_NET_BROADCAST|1<<CAP_NET_ADMIN|1<<CAP_NET_RAW|1<<CAP_IPC_LOCK|1<<CAP_IPC_OWNER|1<<CAP_SYS_MODULE|1<<CAP_SYS_RAWIO|1<<CAP_SYS_CHROOT|1<<CAP_SYS_PTRACE|1<<CAP_SYS_PACCT|1<<CAP_SYS_ADMIN|1<<CAP_SYS_BOOT|1<<CAP_SYS_NICE|1<<CAP_SYS_RESOURCE|1<<CAP"
+        },
+        {
+            "time": 1779064056.287104,
+            "event": "getuid()              = 0"
+        },
+        {
+            "time": 1779064056.287168,
+            "event": "geteuid()             = 0"
+        },
+        {
+            "time": 1779064056.287233,
+            "event": "getgid()              = 0"
+        },
+        {
+            "time": 1779064056.28729,
+            "event": "getegid()             = 0"
+        },
+        {
+            "time": 1779064056.287365,
+            "event": "fstat(0, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0"
+        },
+        {
+            "time": 1779064056.287434,
+            "event": "fstat(1, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0"
+        },
+        {
+            "time": 1779064056.287496,
+            "event": "fstat(2, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0"
+        },
+        {
+            "time": 1779064056.287559,
+            "event": "rt_sigprocmask(SIG_SETMASK, [USR1], NULL, 8) = 0"
+        },
+        {
+            "time": 1779064056.287636,
+            "event": "rt_sigaction(SIGHUP, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.287699,
+            "event": "rt_sigaction(SIGINT, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.28776,
+            "event": "rt_sigaction(SIGQUIT, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.287843,
+            "event": "rt_sigaction(SIGILL, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.287904,
+            "event": "rt_sigaction(SIGTRAP, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.287966,
+            "event": "rt_sigprocmask(SIG_BLOCK, ~[], [USR1], 8) = 0"
+        },
+        {
+            "time": 1779064056.28803,
+            "event": "rt_sigaction(SIGABRT, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288091,
+            "event": "rt_sigprocmask(SIG_SETMASK, [USR1], NULL, 8) = 0"
+        },
+        {
+            "time": 1779064056.288158,
+            "event": "rt_sigaction(SIGBUS, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288219,
+            "event": "rt_sigaction(SIGFPE, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288281,
+            "event": "rt_sigaction(SIGUSR1, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288342,
+            "event": "rt_sigaction(SIGSEGV, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288403,
+            "event": "rt_sigaction(SIGUSR2, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288464,
+            "event": "rt_sigaction(SIGPIPE, {sa_handler=SIG_IGN, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f3e3ce6fdf0}, NULL, 8) = 0"
+        },
+        {
+            "time": 1779064056.288525,
+            "event": "rt_sigaction(SIGALRM, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288586,
+            "event": "rt_sigaction(SIGTERM, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288647,
+            "event": "rt_sigaction(SIGSTKFLT, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288707,
+            "event": "rt_sigaction(SIGCHLD, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288787,
+            "event": "rt_sigaction(SIGCONT, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288849,
+            "event": "rt_sigaction(SIGTSTP, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.28891,
+            "event": "rt_sigaction(SIGTTIN, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.288971,
+            "event": "rt_sigaction(SIGTTOU, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.289032,
+            "event": "rt_sigaction(SIGURG, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.289093,
+            "event": "rt_sigaction(SIGXCPU, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.289154,
+            "event": "rt_sigaction(SIGXFSZ, {sa_handler=SIG_IGN, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x7f3e3ce6fdf0}, NULL, 8) = 0"
+        },
+        {
+            "time": 1779064056.289217,
+            "event": "rt_sigaction(SIGVTALRM, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.289278,
+            "event": "rt_sigaction(SIGPROF, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.289337,
+            "event": "rt_sigaction(SIGWINCH, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.289398,
+            "event": "rt_sigaction(SIGIO, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.28946,
+            "event": "rt_sigaction(SIGPWR, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.28952,
+            "event": "rt_sigaction(SIGSYS, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0"
+        },
+        {
+            "time": 1779064056.289582,
+            "event": "fcntl(0, F_GETFL)     = 0 (flags O_RDONLY)"
+        },
+        {
+            "time": 1779064056.289648,
+            "event": "ioctl(0, TCGETS, 0x7ffd7b570f70) = -1 ENOTTY (Inappropriate ioctl for device)"
+        },
+        {
+            "time": 1779064056.28979,
+            "event": "fstat(0, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0"
+        },
+        {
+            "time": 1779064056.289856,
+            "event": "fcntl(1, F_GETFL)     = 0x1 (flags O_WRONLY)"
+        },
+        {
+            "time": 1779064056.289915,
+            "event": "ioctl(1, TCGETS, 0x7ffd7b570f70) = -1 ENOTTY (Inappropriate ioctl for device)"
+        },
+        {
+            "time": 1779064056.28998,
+            "event": "fstat(1, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0"
+        },
+        {
+            "time": 1779064056.290044,
+            "event": "fcntl(2, F_GETFL)     = 0x1 (flags O_WRONLY)"
+        },
+        {
+            "time": 1779064056.290103,
+            "event": "ioctl(2, TCGETS, 0x7ffd7b570f70) = -1 ENOTTY (Inappropriate ioctl for device)"
+        },
+        {
+            "time": 1779064056.290166,
+            "event": "fstat(2, {st_mode=S_IFIFO|0600, st_size=0, ...}) = 0"
+        },
+        {
+            "time": 1779064056.290236,
+            "event": "rt_sigaction(SIGINT, {sa_handler=0x7f3e3db41a60, sa_mask=~[RTMIN RT_1], sa_flags=SA_RESTORER|SA_RESETHAND|0xffffffff00000000, sa_restorer=0x7f3e3ce6fdf0}, NULL, 8) = 0"
+        },
+        {
+            "time": 1779064056.290299,
+            "event": "rt_sigaction(SIGTERM, {sa_handler=0x7f3e3db41a60, sa_mask=~[RTMIN RT_1], sa_flags=SA_RESTORER|SA_RESETHAND|0xffffffff00000000, sa_restorer=0x7f3e3ce6fdf0}, NULL, 8) = 0"
+        },
+        {
+            "time": 1779064056.290361,
+            "event": "prlimit64(0, RLIMIT_NOFILE, NULL, {rlim_cur=64*1024, rlim_max=64*1024}) = 0"
+        },
+        {
+            "time": 1779064056.290488,
+            "event": "fcntl(0, F_SETFD, FD_CLOEXEC) = 0"
+        },
+        {
+            "time": 1779064056.290548,
+            "event": "fcntl(1, F_SETFD, FD_CLOEXEC) = 0"
+        },
+        {
+            "time": 1779064056.290606,
+            "event": "fcntl(2, F_SETFD, FD_CLOEXEC) = 0"
+        },
+        {
+            "time": 1779064056.290663,
+            "event": "fcntl(3, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.290729,
+            "event": "fcntl(4, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.290803,
+            "event": "fcntl(5, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.290866,
+            "event": "fcntl(6, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.290928,
+            "event": "fcntl(7, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.290988,
+            "event": "fcntl(8, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.291055,
+            "event": "fcntl(9, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.291114,
+            "event": "fcntl(10, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.291175,
+            "event": "fcntl(11, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.291236,
+            "event": "fcntl(12, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.291298,
+            "event": "fcntl(13, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.291359,
+            "event": "fcntl(14, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.291418,
+            "event": "fcntl(15, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.29148,
+            "event": "fcntl(16, F_SETFD, FD_CLOEXEC) = -1 EBADF (Bad file descriptor)"
+        },
+        {
+            "time": 1779064056.291589,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.291654,
+            "event": "capget({version=_LINUX_CAPABILITY_VERSION_3, pid=14}, {effective=1<<CAP_CHOWN|1<<CAP_DAC_OVERRIDE|1<<CAP_DAC_READ_SEARCH|1<<CAP_FOWNER|1<<CAP_FSETID|1<<CAP_KILL|1<<CAP_SETGID|1<<CAP_SETUID|1<<CAP_SETPCAP|1<<CAP_LINUX_IMMUTABLE|1<<CAP_NET_BIND_SERVICE|1<<CAP_NET_BROADCAST|1<<CAP_NET_ADMIN|1<<CAP_NET_RAW|1<<CAP_IPC_LOCK|1<<CAP_IPC_OWNER|1<<CAP_SYS_MODULE|1<<CAP_SYS_RAWIO|1<<CAP_SYS_CHROOT|1<<CAP_SYS_PTRACE|1<<CAP_SYS_PACCT|1<<CAP_SYS_ADMIN|1<<CAP_SYS_BOOT|1<<CAP_SYS_NICE|1<<CAP_SYS_RESOURCE|1<<CAP"
+        },
+        {
+            "time": 1779064056.291725,
+            "event": "getuid()              = 0"
+        },
+        {
+            "time": 1779064056.2918,
+            "event": "geteuid()             = 0"
+        },
+        {
+            "time": 1779064056.291859,
+            "event": "getgid()              = 0"
+        },
+        {
+            "time": 1779064056.291918,
+            "event": "getegid()             = 0"
+        },
+        {
+            "time": 1779064056.291984,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.292042,
+            "event": "capget({version=_LINUX_CAPABILITY_VERSION_3, pid=14}, {effective=1<<CAP_CHOWN|1<<CAP_DAC_OVERRIDE|1<<CAP_DAC_READ_SEARCH|1<<CAP_FOWNER|1<<CAP_FSETID|1<<CAP_KILL|1<<CAP_SETGID|1<<CAP_SETUID|1<<CAP_SETPCAP|1<<CAP_LINUX_IMMUTABLE|1<<CAP_NET_BIND_SERVICE|1<<CAP_NET_BROADCAST|1<<CAP_NET_ADMIN|1<<CAP_NET_RAW|1<<CAP_IPC_LOCK|1<<CAP_IPC_OWNER|1<<CAP_SYS_MODULE|1<<CAP_SYS_RAWIO|1<<CAP_SYS_CHROOT|1<<CAP_SYS_PTRACE|1<<CAP_SYS_PACCT|1<<CAP_SYS_ADMIN|1<<CAP_SYS_BOOT|1<<CAP_SYS_NICE|1<<CAP_SYS_RESOURCE|1<<CAP"
+        },
+        {
+            "time": 1779064056.292113,
+            "event": "getuid()              = 0"
+        },
+        {
+            "time": 1779064056.292172,
+            "event": "geteuid()             = 0"
+        },
+        {
+            "time": 1779064056.292232,
+            "event": "getgid()              = 0"
+        },
+        {
+            "time": 1779064056.292289,
+            "event": "getegid()             = 0"
+        },
+        {
+            "time": 1779064056.29235,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.292409,
+            "event": "capget({version=_LINUX_CAPABILITY_VERSION_3, pid=14}, {effective=1<<CAP_CHOWN|1<<CAP_DAC_OVERRIDE|1<<CAP_DAC_READ_SEARCH|1<<CAP_FOWNER|1<<CAP_FSETID|1<<CAP_KILL|1<<CAP_SETGID|1<<CAP_SETUID|1<<CAP_SETPCAP|1<<CAP_LINUX_IMMUTABLE|1<<CAP_NET_BIND_SERVICE|1<<CAP_NET_BROADCAST|1<<CAP_NET_ADMIN|1<<CAP_NET_RAW|1<<CAP_IPC_LOCK|1<<CAP_IPC_OWNER|1<<CAP_SYS_MODULE|1<<CAP_SYS_RAWIO|1<<CAP_SYS_CHROOT|1<<CAP_SYS_PTRACE|1<<CAP_SYS_PACCT|1<<CAP_SYS_ADMIN|1<<CAP_SYS_BOOT|1<<CAP_SYS_NICE|1<<CAP_SYS_RESOURCE|1<<CAP"
+        },
+        {
+            "time": 1779064056.292478,
+            "event": "getuid()              = 0"
+        },
+        {
+            "time": 1779064056.292538,
+            "event": "geteuid()             = 0"
+        },
+        {
+            "time": 1779064056.292599,
+            "event": "getgid()              = 0"
+        },
+        {
+            "time": 1779064056.292659,
+            "event": "getegid()             = 0"
+        },
+        {
+            "time": 1779064056.292718,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.292789,
+            "event": "capget({version=_LINUX_CAPABILITY_VERSION_3, pid=14}, {effective=1<<CAP_CHOWN|1<<CAP_DAC_OVERRIDE|1<<CAP_DAC_READ_SEARCH|1<<CAP_FOWNER|1<<CAP_FSETID|1<<CAP_KILL|1<<CAP_SETGID|1<<CAP_SETUID|1<<CAP_SETPCAP|1<<CAP_LINUX_IMMUTABLE|1<<CAP_NET_BIND_SERVICE|1<<CAP_NET_BROADCAST|1<<CAP_NET_ADMIN|1<<CAP_NET_RAW|1<<CAP_IPC_LOCK|1<<CAP_IPC_OWNER|1<<CAP_SYS_MODULE|1<<CAP_SYS_RAWIO|1<<CAP_SYS_CHROOT|1<<CAP_SYS_PTRACE|1<<CAP_SYS_PACCT|1<<CAP_SYS_ADMIN|1<<CAP_SYS_BOOT|1<<CAP_SYS_NICE|1<<CAP_SYS_RESOURCE|1<<CAP"
+        },
+        {
+            "time": 1779064056.292862,
+            "event": "getuid()              = 0"
+        },
+        {
+            "time": 1779064056.292922,
+            "event": "geteuid()             = 0"
+        },
+        {
+            "time": 1779064056.29298,
+            "event": "getgid()              = 0"
+        },
+        {
+            "time": 1779064056.293039,
+            "event": "getegid()             = 0"
+        },
+        {
+            "time": 1779064056.293105,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.293164,
+            "event": "capget({version=_LINUX_CAPABILITY_VERSION_3, pid=14}, {effective=1<<CAP_CHOWN|1<<CAP_DAC_OVERRIDE|1<<CAP_DAC_READ_SEARCH|1<<CAP_FOWNER|1<<CAP_FSETID|1<<CAP_KILL|1<<CAP_SETGID|1<<CAP_SETUID|1<<CAP_SETPCAP|1<<CAP_LINUX_IMMUTABLE|1<<CAP_NET_BIND_SERVICE|1<<CAP_NET_BROADCAST|1<<CAP_NET_ADMIN|1<<CAP_NET_RAW|1<<CAP_IPC_LOCK|1<<CAP_IPC_OWNER|1<<CAP_SYS_MODULE|1<<CAP_SYS_RAWIO|1<<CAP_SYS_CHROOT|1<<CAP_SYS_PTRACE|1<<CAP_SYS_PACCT|1<<CAP_SYS_ADMIN|1<<CAP_SYS_BOOT|1<<CAP_SYS_NICE|1<<CAP_SYS_RESOURCE|1<<CAP"
+        },
+        {
+            "time": 1779064056.293235,
+            "event": "getuid()              = 0"
+        },
+        {
+            "time": 1779064056.293297,
+            "event": "geteuid()             = 0"
+        },
+        {
+            "time": 1779064056.293358,
+            "event": "getgid()              = 0"
+        },
+        {
+            "time": 1779064056.293417,
+            "event": "getegid()             = 0"
+        },
+        {
+            "time": 1779064056.293492,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.293551,
+            "event": "capget({version=_LINUX_CAPABILITY_VERSION_3, pid=14}, {effective=1<<CAP_CHOWN|1<<CAP_DAC_OVERRIDE|1<<CAP_DAC_READ_SEARCH|1<<CAP_FOWNER|1<<CAP_FSETID|1<<CAP_KILL|1<<CAP_SETGID|1<<CAP_SETUID|1<<CAP_SETPCAP|1<<CAP_LINUX_IMMUTABLE|1<<CAP_NET_BIND_SERVICE|1<<CAP_NET_BROADCAST|1<<CAP_NET_ADMIN|1<<CAP_NET_RAW|1<<CAP_IPC_LOCK|1<<CAP_IPC_OWNER|1<<CAP_SYS_MODULE|1<<CAP_SYS_RAWIO|1<<CAP_SYS_CHROOT|1<<CAP_SYS_PTRACE|1<<CAP_SYS_PACCT|1<<CAP_SYS_ADMIN|1<<CAP_SYS_BOOT|1<<CAP_SYS_NICE|1<<CAP_SYS_RESOURCE|1<<CAP"
+        },
+        {
+            "time": 1779064056.293622,
+            "event": "getuid()              = 0"
+        },
+        {
+            "time": 1779064056.293682,
+            "event": "geteuid()             = 0"
+        },
+        {
+            "time": 1779064056.293742,
+            "event": "getgid()              = 0"
+        },
+        {
+            "time": 1779064056.293827,
+            "event": "getegid()             = 0"
+        },
+        {
+            "time": 1779064056.293909,
+            "event": "futex(0x7f3e3c1d11c0, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.29401,
+            "event": "newfstatat(AT_FDCWD, \"/usr/share/zoneinfo-icu/44/le/zoneinfo64.res\", 0x7ffd7b570750, 0) = -1 ENOENT (No such file or directory)"
+        },
+        {
+            "time": 1779064056.294143,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.294203,
+            "event": "capget({version=_LINUX_CAPABILITY_VERSION_3, pid=14}, {effective=1<<CAP_CHOWN|1<<CAP_DAC_OVERRIDE|1<<CAP_DAC_READ_SEARCH|1<<CAP_FOWNER|1<<CAP_FSETID|1<<CAP_KILL|1<<CAP_SETGID|1<<CAP_SETUID|1<<CAP_SETPCAP|1<<CAP_LINUX_IMMUTABLE|1<<CAP_NET_BIND_SERVICE|1<<CAP_NET_BROADCAST|1<<CAP_NET_ADMIN|1<<CAP_NET_RAW|1<<CAP_IPC_LOCK|1<<CAP_IPC_OWNER|1<<CAP_SYS_MODULE|1<<CAP_SYS_RAWIO|1<<CAP_SYS_CHROOT|1<<CAP_SYS_PTRACE|1<<CAP_SYS_PACCT|1<<CAP_SYS_ADMIN|1<<CAP_SYS_BOOT|1<<CAP_SYS_NICE|1<<CAP_SYS_RESOURCE|1<<CAP"
+        },
+        {
+            "time": 1779064056.294275,
+            "event": "getuid()              = 0"
+        },
+        {
+            "time": 1779064056.294337,
+            "event": "geteuid()             = 0"
+        },
+        {
+            "time": 1779064056.294397,
+            "event": "getgid()              = 0"
+        },
+        {
+            "time": 1779064056.294456,
+            "event": "getegid()             = 0"
+        },
+        {
+            "time": 1779064056.294537,
+            "event": "futex(0x7f3e3ccb5358, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.294603,
+            "event": "futex(0x7f3e3ccb5314, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.294672,
+            "event": "futex(0x7f3e3ccb5308, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.294732,
+            "event": "futex(0x7f3e3ccb5300, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.29486,
+            "event": "futex(0x7f3e3ccb4ac8, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.294926,
+            "event": "futex(0x7f3e3ccb4e2c, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.294994,
+            "event": "futex(0x7f3e3ccb4d64, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.295059,
+            "event": "futex(0x7f3e3ccb5360, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.295125,
+            "event": "futex(0x7f3e3ccb4d58, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.295439,
+            "event": "futex(0x7f3e3ccb52f8, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.295512,
+            "event": "openat(AT_FDCWD, \"/usr/lib/ssl/openssl.cnf\", O_RDONLY) = 3"
+        },
+        {
+            "time": 1779064056.295605,
+            "event": "fstat(3, {st_mode=S_IFREG|0644, st_size=12411, ...}) = 0"
+        },
+        {
+            "time": 1779064056.295684,
+            "event": "read(3, \"#\\n# OpenSSL example configuratio\"..., 4096) = 4096"
+        },
+        {
+            "time": 1779064056.295812,
+            "event": "read(3, \"d attributes must be the same, a\"..., 4096) = 4096"
+        },
+        {
+            "time": 1779064056.2959,
+            "event": "brk(0x55d5591d8000)   = 0x55d5591d8000"
+        },
+        {
+            "time": 1779064056.295998,
+            "event": "read(3, \"coding of an extension: beware e\"..., 4096) = 4096"
+        },
+        {
+            "time": 1779064056.296106,
+            "event": "read(3, \"cert = $insta::certout # insta.c\"..., 4096) = 123"
+        },
+        {
+            "time": 1779064056.296186,
+            "event": "read(3, \"\", 4096)     = 0"
+        },
+        {
+            "time": 1779064056.296255,
+            "event": "close(3)              = 0"
+        },
+        {
+            "time": 1779064056.296351,
+            "event": "futex(0x7f3e3ccb52d8, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.296423,
+            "event": "futex(0x7f3e3ccb5480, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.296498,
+            "event": "futex(0x7f3e3ccb5420, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.296652,
+            "event": "futex(0x7f3e3ccb52e8, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.296738,
+            "event": "futex(0x7f3e3ccb52e0, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.297174,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.297415,
+            "event": "brk(0x55d5591f9000)   = 0x55d5591f9000"
+        },
+        {
+            "time": 1779064056.2977,
+            "event": "getrandom(\"\\x07\\xde\\x6d\\x51\\x95\\xe3\\x91\\x22\\x26\\x99\\xf0\\x63\\x15\\x4f\\x48\\x37\\x71\\x4d\\xe9\\x52\\x07\\x57\\xa6\\xfd\\x67\\x05\\xad\\x65\\xe4\\x2d\\x80\\x37\"..., 48, 0) = 48"
+        },
+        {
+            "time": 1779064056.297805,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.297876,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.29796,
+            "event": "getpid()              = 14"
+        },
+        {
+            "time": 1779064056.29802,
+            "event": "capget({version=_LINUX_CAPABILITY_VERSION_3, pid=14}, {effective=1<<CAP_CHOWN|1<<CAP_DAC_OVERRIDE|1<<CAP_DAC_READ_SEARCH|1<<CAP_FOWNER|1<<CAP_FSETID|1<<CAP_KILL|1<<CAP_SETGID|1<<CAP_SETUID|1<<CAP_SETPCAP|1<<CAP_LINUX_IMMUTABLE|1<<CAP_NET_BIND_SERVICE|1<<CAP_NET_BROADCAST|1<<CAP_NET_ADMIN|1<<CAP_NET_RAW|1<<CAP_IPC_LOCK|1<<CAP_IPC_OWNER|1<<CAP_SYS_MODULE|1<<CAP_SYS_RAWIO|1<<CAP_SYS_CHROOT|1<<CAP_SYS_PTRACE|1<<CAP_SYS_PACCT|1<<CAP_SYS_ADMIN|1<<CAP_SYS_BOOT|1<<CAP_SYS_NICE|1<<CAP_SYS_RESOURCE|1<<CAP"
+        },
+        {
+            "time": 1779064056.298092,
+            "event": "getuid()              = 0"
+        },
+        {
+            "time": 1779064056.298151,
+            "event": "geteuid()             = 0"
+        },
+        {
+            "time": 1779064056.298213,
+            "event": "getgid()              = 0"
+        },
+        {
+            "time": 1779064056.298272,
+            "event": "getegid()             = 0"
+        },
+        {
+            "time": 1779064056.298352,
+            "event": "epoll_create1(EPOLL_CLOEXEC) = 3"
+        },
+        {
+            "time": 1779064056.29843,
+            "event": "openat(AT_FDCWD, \"/proc/version_signature\", O_RDONLY|O_CLOEXEC) = 4"
+        },
+        {
+            "time": 1779064056.298516,
+            "event": "read(4, \"Ubuntu 6.17.0-1013.13~24.04.1-az\"..., 255) = 44"
+        },
+        {
+            "time": 1779064056.298599,
+            "event": "close(4)              = 0"
+        },
+        {
+            "time": 1779064056.298684,
+            "event": "io_uring_setup(256, {flags=IORING_SETUP_NO_SQARRAY, sq_thread_cpu=0, sq_thread_idle=0, sq_entries=256, cq_entries=512, features=IORING_FEAT_SINGLE_MMAP|IORING_FEAT_NODROP|IORING_FEAT_SUBMIT_STABLE|IORING_FEAT_RW_CUR_POS|IORING_FEAT_CUR_PERSONALITY|IORING_FEAT_FAST_POLL|IORING_FEAT_POLL_32BITS|IORING_FEAT_SQPOLL_NONFIXED|IORING_FEAT_EXT_ARG|IORING_FEAT_NATIVE_WORKERS|IORING_FEAT_RSRC_TAGS|IORING_FEAT_CQE_SKIP|IORING_FEAT_LINKED_FILE|IORING_FEAT_REG_REG_RING|IORING_FEAT_RECVSEND_BUNDLE|IORING_FEAT"
+        },
+        {
+            "time": 1779064056.298809,
+            "event": "mmap(NULL, 8256, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_POPULATE, 4, 0) = 0x7f3e404e8000"
+        },
+        {
+            "time": 1779064056.298889,
+            "event": "mmap(NULL, 16384, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_POPULATE, 4, 0x10000000) = 0x7f3e404e4000"
+        },
+        {
+            "time": 1779064056.298972,
+            "event": "pipe2([5, 6], O_CLOEXEC) = 0"
+        },
+        {
+            "time": 1779064056.299045,
+            "event": "write(6, \"*\", 1)      = 1"
+        },
+        {
+            "time": 1779064056.299117,
+            "event": "futex(0x7f3e3ce0ef50, FUTEX_WAKE_PRIVATE, 2147483647) = 0"
+        },
+        {
+            "time": 1779064056.299184,
+            "event": "pipe2([7, 8], O_NONBLOCK|O_CLOEXEC) = 0"
+        },
+        {
+            "time": 1779064056.299264,
+            "event": "eventfd2(0, EFD_CLOEXEC|EFD_NONBLOCK) = 9"
+        },
+        {
+            "time": 1779064056.299346,
+            "event": "prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=16384*1024, rlim_max=RLIM64_INFINITY}) = 0"
+        },
+        {
+            "time": 1779064056.29942,
+            "event": "rt_sigaction(SIGRT_1, {sa_handler=0x7f3e3cec04b0, sa_mask=[], sa_flags=SA_RESTORER|SA_ONSTACK|SA_RESTART|SA_SIGINFO, sa_restorer=0x7f3e3ce6fdf0}, NULL, 8) = 0"
+        },
+        {
+            "time": 1779064056.299484,
+            "event": "rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0"
+        },
+        {
+            "time": 1779064056.299555,
+            "event": "mmap(NULL, 16781312, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7f3e38c8f000"
+        },
+        {
+            "time": 1779064056.299629,
+            "event": "mprotect(0x7f3e38c90000, 16777216, PROT_READ|PROT_WRITE) = 0"
+        },
+        {
+            "time": 1779064056.29971,
+            "event": "rt_sigprocmask(SIG_BLOCK, ~[], [USR1], 8) = 0"
+        },
+        {
+            "time": 1779064056.299802,
+            "event": "clone3({flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, child_tid=0x7f3e39c8f990, parent_tid=0x7f3e39c8f990, exit_signal=0, stack=0x7f3e38c8f000, stack_size=0xfffe40, tls=0x7f3e39c8f6c0}strace: Process 15 attached"
+        },
+        {
+            "time": 1779064123.531957,
+            "event": "+++ exited with 0 +++"
+        }
+    ],
+    "behavior_score": 5,
+    "behavior_tiers": [
+        "high"
+    ],
+    "behavior_weights": [
+        5
+    ],
+    "dns_queries": [],
+    "http_hosts": [],
+    "http_methods": [
+        "POST"
+    ],
+    "http_paths": [
+        "/exfil"
+    ],
+    "dynamic_features": {
+        "feat_behavior_score": 5,
+        "feat_has_exfiltration_phase": "False",
+        "feat_has_credential_access_phase": "False",
+        "feat_has_persistence_phase": "False",
+        "feat_contacted_external_domain": "hyper-cr4te.1dorelax.surf",
+        "feat_sensitive_file_read": "False",
+        "feat_honeytoken_triggered": "False",
+        "feat_spawned_shell": "False",
+        "feat_dns_query_to_external": "hyper-cr4te.1dorelax.surf",
+        "feat_http_method": "POST",
+        "feat_http_exfil_attempt": "False",
+        "feat_domain_is_known_malicious": "True",
+        "feat_contacted_countries": "none",
+        "feat_contacted_isps": "none",
+        "feat_http_user_agents": "webpack-bundle-optimizer/1.0",
+        "decoy_processes_spawned": "node|index.js",
+        "decoy_sensitive_files_accessed": "none",
+        "decoy_new_files_created": "/tmp/tmpgooew8cs/config.json|/tmp/tmpgooew8cs/secrets.yaml|/tmp/tmpgooew8cs/.env|/tmp/tmpgooew8cs/.ssh/id_rsa|/tmp/tmpgooew8cs/.aws/credentials",
+        "decoy_modified_files": "none",
+        "decoy_honeytoken_types_triggered": "none",
+        "proc_privilege_escalation": "False",
+        "proc_write_binary_dir": "False",
+        "proc_ptrace_detected": "True",
+        "proc_package_install_runtime": "True"
+    }
+}
