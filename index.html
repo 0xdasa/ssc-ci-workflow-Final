@@ -471,5 +471,141 @@ updateClock();
 setInterval(updateClock, 1000);
 </script>
 
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAbDpPcQ08iFJRu1JkCszfsWs9-jKVO5z0",
+  authDomain: "ssc-logs.firebaseapp.com",
+  projectId: "ssc-logs",
+  storageBucket: "ssc-logs.firebasestorage.app",
+  messagingSenderId: "518065458763",
+  appId: "1:518065458763:web:b300938314442dee5247ce"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function toDateString(value) {
+  try {
+    if (!value) return "—";
+    if (value.toDate) return value.toDate().toLocaleString();
+    if (value.seconds) return new Date(value.seconds * 1000).toLocaleString();
+    return new Date(value).toLocaleString();
+  } catch {
+    return String(value || "—");
+  }
+}
+
+function normalizePublicDoc(d) {
+  const ml = {
+    package: d.package || "—",
+    prediction: d.ml_prediction,
+    risk_probability: d.risk_probability || 0,
+    run_id: d.run_id || "—",
+    timestamp: toDateString(d.updated_at),
+    top_shap: [],
+    features: {}
+  };
+
+  const runtime = {
+    package: d.package || "—",
+    verdict: d.final_result || d.runtime_verdict || "BENIGN",
+    score: d.runtime_score || 0,
+    run_timestamp: toDateString(d.updated_at),
+    behavior_findings: d.top_findings || [],
+    behavioral_phases: {},
+    static_analysis: {},
+    package_metadata: {
+      package: d.package || "—",
+      package_stem: d.package_stem || "—",
+      run_id: d.run_id || "—",
+      result: d.final_result || "—",
+      risk_level: d.risk_level || "—"
+    },
+    honeytoken_hits: [],
+    accessed_files: [],
+    processes: [],
+    network_analysis: {
+      real_domains: [],
+      external_ips: [],
+      total_dns_queries: d.network_summary?.dns_queries_count || 0,
+      total_http_requests: d.network_summary?.http_requests_count || 0,
+      total_unique_ips: d.network_summary?.external_ips_count || 0
+    },
+    dns: [],
+    http_requests: [],
+    memory_strings: [],
+    timeline: [],
+    dynamic_features: d.dynamic_features || {}
+  };
+
+  const honeySummary = d.honeytoken_summary || {};
+  if (honeySummary.triggered || honeySummary.hit_count > 0) {
+    const count = honeySummary.hit_count || 0;
+    const types = honeySummary.types || [];
+    runtime.honeytoken_hits = types.length
+      ? types.map(t => `${t} (${count} hit${count === 1 ? "" : "s"})`)
+      : [`honeytoken triggered (${count} hit${count === 1 ? "" : "s"})`];
+    runtime.accessed_files = runtime.honeytoken_hits;
+  }
+
+  const cloud = {
+    analysis_type: "firestore_dashboard_public",
+    run_timestamp: toDateString(d.updated_at),
+    dynamic_features: {
+      ...(d.ebpf_features || {}),
+      final_result: d.final_result || "—",
+      risk_level: d.risk_level || "—",
+      network_external_ips_count: d.network_summary?.external_ips_count || 0,
+      network_domains_count: d.network_summary?.domains_count || 0,
+      network_dns_queries_count: d.network_summary?.dns_queries_count || 0,
+      network_http_requests_count: d.network_summary?.http_requests_count || 0,
+      honeytoken_hit_count: honeySummary.hit_count || 0,
+      honeytoken_triggered: honeySummary.triggered || false
+    },
+    ebpf_features: d.ebpf_features || {}
+  };
+
+  if (d.network_summary?.countries?.length) {
+    runtime.network_analysis.real_domains = d.network_summary.countries.map(c => `country:${c}`);
+  }
+
+  return { ml, runtime, cloud };
+}
+
+async function loadFirestoreDashboard() {
+  try {
+    const latestRef = doc(db, "dashboard_public", "latest");
+    const latestSnap = await getDoc(latestRef);
+
+    if (!latestSnap.exists()) {
+      document.getElementById("dashboard-last-updated").textContent =
+        "No Firestore data yet. Run the workflow once.";
+      document.getElementById("b-pkg").textContent = "—";
+      document.getElementById("b-verdict").textContent = "NO DATA";
+      return;
+    }
+
+    const publicData = latestSnap.data();
+    const mapped = normalizePublicDoc(publicData);
+
+    renderAll(mapped.ml, mapped.runtime, mapped.cloud);
+
+    document.getElementById("dashboard-last-updated").textContent =
+      "Firestore · " + toDateString(publicData.updated_at);
+
+  } catch (err) {
+    console.error("Firestore dashboard load failed:", err);
+    document.getElementById("dashboard-last-updated").textContent =
+      "Firestore error: " + err.message;
+  }
+}
+
+loadFirestoreDashboard();
+setInterval(loadFirestoreDashboard, 10000);
+</script>
+
 </body>
 </html>
