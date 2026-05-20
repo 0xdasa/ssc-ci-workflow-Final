@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import math
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
@@ -124,30 +125,6 @@ def find_ebpf_log(package_file, run_number):
     return candidates[0][2], str(candidates[0][1])
 
 
-def summarize_honeytokens(runtime_log):
-    hits = runtime_log.get("honeytoken_hits", []) or []
-    types = []
-
-    for h in hits:
-        s = str(h).lower()
-        if ".aws" in s or "credential" in s:
-            types.append("fake_aws_credentials")
-        elif ".env" in s:
-            types.append("fake_env_file")
-        elif ".ssh" in s or "id_rsa" in s:
-            types.append("fake_ssh_key")
-        elif "config" in s:
-            types.append("fake_config_file")
-        else:
-            types.append("honeytoken_file")
-
-    return {
-        "triggered": len(hits) > 0,
-        "hit_count": len(hits),
-        "types": sorted(set(types))
-    }
-
-
 def summarize_network(runtime_log, ebpf_log):
     net = runtime_log.get("network_analysis", {}) or {}
     external_ips = net.get("external_ips", []) or []
@@ -176,7 +153,7 @@ def summarize_network(runtime_log, ebpf_log):
         "isps": sorted(set(isps)),
         "orgs": sorted(set(orgs)),
         "ebpf_network_activity": bool(ebpf_features.get("ebpf_network_activity", False)),
-        "ebpf_remote_ips_count": ebpf_features.get("ebpf_remote_ips_count", 0)
+        "ebpf_remote_ips_count": ebpf_features.get("ebpf_remote_ips_count", 0),
     }
 
 
@@ -226,6 +203,58 @@ def trim_list(items, limit=50):
     if not isinstance(items, list):
         return []
     return items[:limit]
+
+
+def sanitize_for_firestore(value, depth=0):
+    """
+    Firestore rejects some Python/JSON structures, especially nested arrays.
+    This function converts logs into Firestore-safe values.
+    """
+    if depth > 20:
+        return str(value)
+
+    if value is None:
+        return None
+
+    if isinstance(value, (str, bool, int)):
+        return value
+
+    if isinstance(value, float):
+        if math.isnan(value) or math.isinf(value):
+            return None
+        return value
+
+    if isinstance(value, datetime):
+        return value
+
+    if isinstance(value, dict):
+        clean = {}
+        for k, v in value.items():
+            key = str(k).strip()
+            if not key:
+                key = "unknown_key"
+
+            key = key.replace(".", "_").replace("/", "_").replace("\\", "_")
+
+            clean[key] = sanitize_for_firestore(v, depth + 1)
+
+        return clean
+
+    if isinstance(value, (list, tuple, set)):
+        clean_list = []
+
+        for item in list(value)[:300]:
+            # Firestore does not allow arrays directly inside arrays.
+            if isinstance(item, (list, tuple, set)):
+                clean_list.append({
+                    "items": sanitize_for_firestore(list(item), depth + 1)
+                })
+            else:
+                clean_list.append(sanitize_for_firestore(item, depth + 1))
+
+        return clean_list
+
+    return str(value)
 
 
 def init_firestore():
@@ -290,12 +319,11 @@ def main():
         "processes_count": len(processes),
         "accessed_files_count": len(accessed_files),
         "network_summary": summarize_network(runtime_log, ebpf_log),
-        "honeytoken_summary": summarize_honeytokens(runtime_log),
         "top_findings": [
             {
                 "tier": f.get("tier"),
                 "label": f.get("label"),
-                "weight": f.get("weight")
+                "weight": f.get("weight"),
             }
             for f in behavior_findings[:10]
             if isinstance(f, dict)
@@ -305,7 +333,7 @@ def main():
         "sources": {
             "ml_log": ml_source,
             "runtime_log": runtime_source,
-            "ebpf_log": ebpf_source
+            "ebpf_log": ebpf_source,
         },
         "updated_at": now,
         "expires_at": summary_expires,
@@ -336,7 +364,7 @@ def main():
         "sources": {
             "ml_log": ml_source,
             "runtime_log": runtime_source,
-            "ebpf_log": ebpf_source
+            "ebpf_log": ebpf_source,
         },
         "created_at": now,
         "expires_at": raw_expires,
@@ -379,6 +407,13 @@ def main():
         "created_at": now,
         "expires_at": raw_expires,
     }
+
+    analysis_doc = sanitize_for_firestore(analysis_doc)
+    raw_meta_doc = sanitize_for_firestore(raw_meta_doc)
+    raw_ml_doc = sanitize_for_firestore(raw_ml_doc)
+    raw_runtime_doc = sanitize_for_firestore(raw_runtime_doc)
+    raw_ebpf_doc = sanitize_for_firestore(raw_ebpf_doc)
+    public_doc = sanitize_for_firestore(public_doc)
 
     batch = db.batch()
 
