@@ -245,7 +245,7 @@ setInterval(loadHoney,10000);
 
 
 <!-- ══════════════════════════════════════════
-     PANEL 2 — DASHBOARD (UPDATED: SHAP + CLEAN CLOUD)
+     PANEL 2 — DASHBOARD (UPDATED: SHAP + ENHANCED CLOUD)
 ════════════════════════════════════════════ -->
 <div id="panel-dashboard" class="dash-panel">
 <style>
@@ -274,78 +274,7 @@ setInterval(loadHoney,10000);
 .phase-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}.phase-card{background:var(--bg1);border:1px solid var(--border);border-radius:7px;padding:10px 14px;display:flex;flex-direction:column;gap:4px}.phase-card.active{border-color:var(--accent2)}.phase-name{font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em}.phase-count{font-family:var(--mono);font-size:22px;font-weight:700}.phase-count.zero{color:var(--text-dim)}.phase-count.nonzero{color:var(--accent2)}
 .honey-hit{background:rgba(255,78,106,.12);border:1px solid rgba(255,78,106,.4);border-radius:6px;padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--red);display:flex;align-items:center;gap:8px;margin-bottom:6px}.no-honey{color:var(--green);font-family:var(--mono);font-size:12px;padding:8px 12px;background:rgba(0,255,157,.08);border:1px solid rgba(0,255,157,.2);border-radius:6px}
 .kv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:8px}.kv-card{background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--mono);font-size:11px}.kv-card .k{color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-size:10px}.kv-card .v{color:var(--accent);font-weight:700;text-align:right;word-break:break-all;max-width:62%}.kv-card .v.true{color:var(--red)}.kv-card .v.false{color:var(--green)}.kv-card .v.warn{color:var(--yellow)}
-
-/* SHAP styles */
-.shap-box {
-  background: var(--bg1);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 10px;
-}
-
-.shap-title {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-dim);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-
-.shap-item {
-  display: grid;
-  grid-template-columns: minmax(220px, 1.2fr) 2fr 80px;
-  gap: 12px;
-  align-items: center;
-  padding: 9px 0;
-  border-bottom: 1px solid rgba(30,48,80,.7);
-  font-family: var(--mono);
-  font-size: 11px;
-}
-
-.shap-item:last-child {
-  border-bottom: none;
-}
-
-.shap-feature {
-  color: var(--text);
-  word-break: break-word;
-}
-
-.shap-track {
-  height: 9px;
-  background: var(--bg3);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.shap-fill {
-  height: 100%;
-  border-radius: 999px;
-}
-
-.shap-impact {
-  text-align: right;
-  font-weight: 700;
-}
-
-.shap-impact.positive {
-  color: var(--red);
-}
-
-.shap-impact.negative {
-  color: var(--green);
-}
-
-.shap-note {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  margin-top: 8px;
-}
-
-.shap-row{display:grid;grid-template-columns:minmax(210px,1fr) 2fr 86px;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(30,48,80,.7);font-family:var(--mono);font-size:11px}.shap-name{color:var(--text);word-break:break-word}.shap-track{height:9px;background:var(--bg3);border-radius:4px;overflow:hidden}.shap-fill{height:100%;border-radius:4px}.shap-val{text-align:right}.pos{color:var(--red)}.neg{color:var(--green)}
+.shap-box{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px}.shap-title{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}.shap-item{display:grid;grid-template-columns:minmax(220px,1.2fr) 2fr 80px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(30,48,80,.7);font-family:var(--mono);font-size:11px}.shap-item:last-child{border-bottom:none}.shap-feature{color:var(--text);word-break:break-word}.shap-track{height:9px;background:var(--bg3);border-radius:999px;overflow:hidden}.shap-fill{height:100%;border-radius:999px}.shap-impact{text-align:right;font-weight:700}.shap-impact.positive{color:var(--red)}.shap-impact.negative{color:var(--green)}.shap-note{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:8px}
 .http-card,.net-card,.sa-file{background:var(--bg1);border:1px solid var(--border);border-radius:7px;padding:10px 12px;font-family:var(--mono);font-size:11px;margin-bottom:7px}.http-method{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;margin-right:6px;background:rgba(0,212,255,.15);color:var(--accent)}.http-method.POST{background:rgba(255,78,106,.2);color:var(--red)}.http-path{color:var(--text);word-break:break-all}.http-tag{color:var(--yellow);font-size:10px;margin-top:3px}.net-ip{font-size:14px;color:var(--accent);font-weight:700}.net-detail{color:var(--text-dim);font-size:11px;margin-top:2px}.net-detail span{color:var(--text)}.mem-chip{display:inline-block;margin:3px;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text-dim);word-break:break-all}.mem-chip.ip{border-color:rgba(255,78,106,.3);color:var(--red)}.mem-chip.url{border-color:rgba(0,212,255,.3);color:var(--accent)}.mem-chip.b64{border-color:rgba(245,196,0,.3);color:var(--yellow)}.mem-chip.path{border-color:rgba(255,140,66,.3);color:var(--orange)}
 .tl-row{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:7px 12px;border-bottom:1px solid rgba(30,48,80,.5);font-family:var(--mono);font-size:11px}.tl-time{color:var(--text-dim);white-space:nowrap}.tl-event{color:var(--text);word-break:break-all;line-height:1.4}.empty{padding:20px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--text-dim)}.source-note{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:2px}
 </style>
@@ -382,7 +311,7 @@ setInterval(loadHoney,10000);
   </div>
 
   <div class="card">
-    <div class="card-title">Runtime Evidence</div>
+    <div class="card-title">Observed Runtime Behavior</div>
     <div id="runtime-evidence-list"><div class="empty">No runtime evidence</div></div>
   </div>
 
@@ -426,7 +355,7 @@ function displayRawValue(v) {
   return String(v);
 }
 
-// --- NEW SHAP helpers ---
+// --- UPDATED SHAP helpers (exactly as requested)---
 function normalizeModelFactors(ml) {
   const raw =
     ml?.top_shap ||
@@ -436,41 +365,47 @@ function normalizeModelFactors(ml) {
     ml?.explanations ||
     [];
 
+  function makeFactor(name, value) {
+    const n = Number(value);
+    if (!name || Number.isNaN(n)) return null;
+
+    return {
+      name: cleanFeatureName(name),
+      value: n
+    };
+  }
+
+  let factors = [];
+
   if (Array.isArray(raw)) {
-    return raw
-      .map(item => {
-        if (Array.isArray(item)) {
-          return {
-            name: cleanFeatureName(item[0]),
-            value: Number(item[1]) || 0
-          };
+    factors = raw.map(item => {
+      if (Array.isArray(item)) {
+        return makeFactor(item[0], item[1]);
+      }
+
+      if (typeof item === "object" && item !== null) {
+        // supports older sanitize_for_firestore shape
+        if (Array.isArray(item.items) && item.items.length >= 2) {
+          return makeFactor(item.items[0], item.items[1]);
         }
 
-        if (typeof item === "object" && item !== null) {
-          return {
-            name: cleanFeatureName(item.feature || item.name || item.key || "model factor"),
-            value: Number(item.value ?? item.shap_value ?? item.impact ?? item.score ?? 0) || 0
-          };
-        }
+        return makeFactor(
+          item.feature || item.name || item.key || item.feature_name,
+          item.value ?? item.shap_value ?? item.impact ?? item.score
+        );
+      }
 
-        return null;
-      })
-      .filter(Boolean)
-      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
-      .slice(0, 10);
+      return null;
+    }).filter(Boolean);
+  } else if (typeof raw === "object" && raw !== null) {
+    factors = Object.entries(raw)
+      .map(([k, v]) => makeFactor(k, v))
+      .filter(Boolean);
   }
 
-  if (typeof raw === "object" && raw !== null) {
-    return Object.entries(raw)
-      .map(([k, v]) => ({
-        name: cleanFeatureName(k),
-        value: Number(v) || 0
-      }))
-      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
-      .slice(0, 10);
-  }
-
-  return [];
+  return factors
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+    .slice(0, 10);
 }
 
 function strongestBehaviorFinding(findings) {
@@ -568,7 +503,7 @@ function tierBadgeD(t){ const map={critical:'tier-critical',high:'tier-high',med
 function renderFindingsD(findings,phases){ const list=el2('findings-list'); let html=''; if(phases&&Object.keys(phases).length){ const phaseRows=Object.entries(phases).filter(([n,e])=>(e||[]).length).map(([n,e])=>`<span class="mem-chip b64">${escD(cleanFeatureName(n))}: ${(e||[]).length}</span>`).join(''); if(phaseRows) html+=`<div class="row" style="display:block"><div style="color:var(--accent);font-family:var(--mono);font-size:11px;margin-bottom:6px">Behavior phase summary</div>${phaseRows}</div>`; } if(!findings||!findings.length){ list.innerHTML=html||'<div class="empty">No findings</div>'; return } html+=findings.map(f=>`<div class="row" style="flex-direction:column;gap:4px"><div style="display:flex;gap:8px;align-items:center">${tierBadgeD(f.tier)}<span>${escD(cleanFeatureName(f.label||''))}</span><span style="margin-left:auto;color:var(--text-dim)">+${escD(f.weight||0)}</span></div>${f.evidence?`<div style="color:var(--text-dim);font-size:10px;word-break:break-all">Evidence: ${escD(f.evidence)}</div>`:''}</div>`).join(''); list.innerHTML=html }
 function renderSimpleD(id,arr,icon='○'){ const list=el2(id); if(!arr||!arr.length){list.innerHTML='<div class="empty">No data</div>';return} list.innerHTML=arr.slice(0,60).map(x=>rowD(icon,escD(String(x)))).join('') }
 
-// NEW: renderRuntimeEvidenceD
+// RUNTIME EVIDENCE (renamed title now handled by HTML)
 function renderRuntimeEvidenceD(runtime) {
   const c = el2('runtime-evidence-list');
 
@@ -662,7 +597,7 @@ function renderRuntimeEvidenceD(runtime) {
 function renderNetworkD(n,reqs,memStrings){ const list=el2('net-list'); if(!n&&!reqs?.length&&!memStrings?.length){list.innerHTML='<div class="empty">No network data</div>';return} const ips=[...new Map(((n&&n.external_ips)||[]).map(i=>[i.ip,i])).values()]; let html=`<div class="kv-grid" style="margin-bottom:8px"><div class="kv-card"><span class="k">Real domains</span><span class="v">${((n&&n.real_domains)||[]).length}</span></div><div class="kv-card"><span class="k">External IPs</span><span class="v">${ips.length}</span></div><div class="kv-card"><span class="k">DNS queries</span><span class="v">${(n&&n.total_dns_queries)||0}</span></div><div class="kv-card"><span class="k">HTTP requests</span><span class="v">${(reqs||[]).length||((n&&n.total_http_requests)||0)}</span></div></div>`; html+=ips.length?ips.map(ip=>`<div class="net-card"><div class="net-ip">${escD(ip.ip)}</div>${ip.country?`<div class="net-detail">Country: <span>${escD(ip.country)} ${escD(ip.city||'')}</span></div>`:''}${ip.isp?`<div class="net-detail">ISP: <span>${escD(ip.isp)}</span></div>`:''}${ip.org?`<div class="net-detail">Org: <span>${escD(ip.org)}</span></div>`:''}${ip.risk?`<div class="net-detail">Risk: <span>${escD(ip.risk)}</span></div>`:''}</div>`).join(''):'<div class="empty">No external IPs contacted</div>'; if(reqs&&reqs.length){ html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin:12px 0 6px">Request details</div>`; html+=reqs.slice(0,40).map(r=>{const a=r.analysis||{}; let extra=''; if(a.large_exfil_attempt)extra+=`<div class="http-tag">⚠ Large payload (${escD(a.payload_size)} bytes)</div>`; if(a.base64_decoded)extra+='<div class="http-tag">⚠ Base64 content</div>'; if(a.sensitive_json_keys)extra+=`<div class="http-tag">⚠ Sensitive keys: ${escD(a.sensitive_json_keys.join(', '))}</div>`; if(r.user_agent)extra+=`<div class="http-tag">UA: ${escD(String(r.user_agent).slice(0,70))}</div>`; return `<div class="http-card"><div><span class="http-method ${escD(r.method||'GET')}">${escD(r.method||'GET')}</span><span class="http-path">${escD(r.path||'')}</span></div>${extra}</div>`}).join('') } if(memStrings&&memStrings.length){ const indicators=memStrings.map(String).filter(s=>/^http/i.test(s)||/^\d{1,3}(\.\d{1,3}){3}$/.test(s)).slice(0,30); if(indicators.length) html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin:12px 0 6px">Extracted network indicators</div>`+indicators.map(s=>`<span class="mem-chip ${/^http/i.test(s)?'url':'ip'}">${escD(s.length>80?s.slice(0,80)+'…':s)}</span>`).join('') } list.innerHTML=html }
 function renderDnsD(dns){ const list=el2('dns-list'); if(!dns||!dns.length){list.innerHTML='<div class="empty">No DNS queries</div>';return} list.innerHTML=dns.slice(0,50).map(d=>rowD('◈',escD(typeof d==='object'?(d.query||JSON.stringify(d)):d))).join('') }
 
-// UPDATED renderCloudD (cloud/ebpf only)
+// UPDATED renderCloudD (shows VALUES not just counts)
 function renderCloudD(cloud) {
   const c = el2('cloud-list');
 
@@ -676,6 +611,7 @@ function renderCloudD(cloud) {
     return;
   }
 
+  // Removed cloud_remote_ports, ebpf_remote_ports, cloud_remote_ips, ebpf_remote_ips from exclusion set
   const duplicatedOrWrongSection = new Set([
     'final_result',
     'risk_level',
@@ -707,11 +643,6 @@ function renderCloudD(cloud) {
     'runtime_new_files_created',
 
     'remote_ports',
-    'cloud_remote_ports',
-    'ebpf_remote_ports',
-    'remote_ips',
-    'cloud_remote_ips',
-    'ebpf_remote_ips',
     'dns_queries',
     'http_requests',
     'network_domains_count',
@@ -732,6 +663,18 @@ function renderCloudD(cloud) {
     ebpf_process_ops: 'Cloud Process Operations',
     cloud_process_ops: 'Cloud Process Operations',
 
+    cloud_remote_ips: 'Remote IP Values',
+    ebpf_remote_ips: 'Remote IP Values',
+
+    cloud_remote_ports: 'Remote Port Values',
+    ebpf_remote_ports: 'Remote Port Values',
+
+    cloud_accessed_paths: 'Cloud Accessed Paths',
+    ebpf_accessed_paths: 'Cloud Accessed Paths',
+
+    cloud_processes: 'Cloud Processes',
+    ebpf_processes: 'Cloud Processes',
+
     ebpf_network_activity: 'Cloud Network Activity',
     ebpf_privilege_escalation: 'Privilege Escalation Signal',
 
@@ -740,9 +683,6 @@ function renderCloudD(cloud) {
     ebpf_accessed_home: 'Home Directory Access',
     ebpf_accessed_tmp: 'TMP Directory Access',
     ebpf_accessed_ssh: 'SSH Directory Access',
-
-    ebpf_remote_ips_count: 'Remote IPs Count',
-    cloud_remote_ips_count: 'Remote IPs Count',
 
     pattern_c2_communication: 'C2 Communication Pattern',
     pattern_process_injection: 'Process Injection Pattern',
@@ -936,7 +876,6 @@ function normalizePublicDoc(d) {
     const types = honeySummary.types || [];
     runtime.honeytoken_hits = types.length ? types.map(t => `${t} (${count} hit${count === 1 ? "" : "s"})`) : [`honeytoken triggered (${count} hit${count === 1 ? "" : "s"})`];
   }
-  // CLOUD: no runtime values ever
   const cloud = {
     analysis_type: "firestore_dashboard_public",
     run_timestamp: toDateString(d.updated_at),
@@ -947,7 +886,12 @@ function normalizePublicDoc(d) {
       cloud_network_ops: d.public_ebpf_values?.cloud_network_ops || d.ebpf_features?.ebpf_network_ops || null,
       cloud_security_ops: d.public_ebpf_values?.cloud_security_ops || d.ebpf_features?.ebpf_security_ops || null,
       cloud_process_ops: d.public_ebpf_values?.cloud_process_ops || d.ebpf_features?.ebpf_process_ops || null,
-      cloud_remote_ips_count: d.network_summary?.external_ips_count || d.ebpf_features?.ebpf_remote_ips_count || null
+      cloud_remote_ips_count: d.network_summary?.external_ips_count || d.ebpf_features?.ebpf_remote_ips_count || null,
+      // pass raw values for IPs/ports to be displayed as values
+      cloud_remote_ips: publicRuntime.remote_ips,
+      cloud_remote_ports: publicRuntime.remote_ports,
+      cloud_accessed_paths: publicRuntime.accessed_paths,
+      cloud_processes: publicRuntime.processes
     },
     ebpf_features: { ...(d.ebpf_features || {}), ...(d.public_ebpf_values || {}) }
   };
