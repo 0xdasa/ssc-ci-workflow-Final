@@ -258,8 +258,6 @@ def sanitize_for_firestore(value, depth=0):
 
 
 # ============================================================
-# دوال استخراج القيم المفيدة (تمت إضافتها)
-# ============================================================
 
 def safe_list(value, limit=20):
     if not value:
@@ -318,6 +316,61 @@ def compact_dict(d):
                 cleaned[k] = nested
 
     return cleaned
+
+
+def extract_top_shap(raw_ml_doc, limit=10):
+    raw_ml_doc = raw_ml_doc or {}
+
+    candidates = [
+        raw_ml_doc.get("top_shap"),
+        raw_ml_doc.get("top_features"),
+        raw_ml_doc.get("shap_values"),
+        raw_ml_doc.get("shap_explanations"),
+        raw_ml_doc.get("explanations"),
+        raw_ml_doc.get("feature_importance"),
+    ]
+
+    for item in candidates:
+        if not item:
+            continue
+
+        if isinstance(item, list):
+            out = []
+            for x in item:
+                if isinstance(x, dict):
+                    name = (
+                        x.get("feature")
+                        or x.get("name")
+                        or x.get("key")
+                        or x.get("feature_name")
+                    )
+                    value = (
+                        x.get("value")
+                        or x.get("shap_value")
+                        or x.get("impact")
+                        or x.get("score")
+                    )
+                    if name is not None and value is not None:
+                        out.append([str(name), float(value)])
+                elif isinstance(x, (list, tuple)) and len(x) >= 2:
+                    out.append([str(x[0]), float(x[1])])
+
+            if out:
+                return out[:limit]
+
+        if isinstance(item, dict):
+            out = []
+            for k, v in item.items():
+                try:
+                    out.append([str(k), float(v)])
+                except Exception:
+                    pass
+
+            if out:
+                out.sort(key=lambda x: abs(x[1]), reverse=True)
+                return out[:limit]
+
+    return []
 
 
 def extract_paths_matching(events, keywords, limit=20):
@@ -473,8 +526,6 @@ def extract_public_ebpf_values(raw_ebpf_doc):
 
 
 # ============================================================
-# نهاية دوال استخراج القيم المفيدة
-# ============================================================
 
 
 def init_firestore():
@@ -524,8 +575,6 @@ def main():
     dynamic_features = runtime_log.get("dynamic_features", {}) or {}
     ebpf_features = ebpf_log.get("ebpf_features", {}) or {}
 
-    # ============================================================
-    # استخراج القيم العامة قبل إنشاء public_doc
     # ============================================================
     public_runtime_values = extract_public_runtime_values(runtime_log)
     public_ebpf_values = extract_public_ebpf_values(ebpf_log)
@@ -636,6 +685,8 @@ def main():
         "created_at": now,
         "expires_at": raw_expires,
     }
+
+    public_doc["top_shap"] = extract_top_shap(raw_ml_doc.get("data", raw_ml_doc))
 
     analysis_doc = sanitize_for_firestore(analysis_doc)
     raw_meta_doc = sanitize_for_firestore(raw_meta_doc)
