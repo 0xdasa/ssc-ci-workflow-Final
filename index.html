@@ -245,7 +245,7 @@ setInterval(loadHoney,10000);
 
 
 <!-- ══════════════════════════════════════════
-     PANEL 2 — DASHBOARD
+     PANEL 2 — DASHBOARD (UPDATED: SHAP + CLEAN CLOUD)
 ════════════════════════════════════════════ -->
 <div id="panel-dashboard" class="dash-panel">
 <style>
@@ -347,22 +347,39 @@ function displayRawValue(v) {
   return String(v);
 }
 
-function renderKVFeatures(ml,runtime,cloud){
+// --- SHAP helpers ---
+function normalizeModelFactors(factors) {
+  if (!factors || !Array.isArray(factors)) return [];
+  return factors.filter(f => f && Array.isArray(f) && f.length >= 2).map(f => ({ name: cleanFeatureName(String(f[0])), value: Number(f[1]) || 0 }));
+}
+function strongestFinding(factors) {
+  if (!factors.length) return null;
+  const strongest = factors.reduce((a,b) => Math.abs(a.value) > Math.abs(b.value) ? a : b);
+  return strongest;
+}
+function renderModelFactorCard(ml, cloud) {
+  let shapList = ml.top_shap || [];
+  if (!shapList.length && ml.features && ml.features.top_shap) shapList = ml.features.top_shap;
+  const shapFactors = normalizeModelFactors(shapList);
+  const strongest = strongestFinding(shapFactors);
+  const container = el2('dynamic-features-container');
+  let html = `<div class="kv-grid" style="margin-bottom:16px"><div class="kv-card"><span class="k">Final Classification</span><span class="v ${mlVerdict(ml)}">${escD(mlVerdict(ml))}</span></div><div class="kv-card"><span class="k">Risk Level</span><span class="v">${escD(ml.risk_level || '—')}</span></div><div class="kv-card"><span class="k">Runtime Score</span><span class="v warn">${escD(ml.runtime_score ?? '—')}</span></div><div class="kv-card"><span class="k">Behavior Findings</span><span class="v">${escD(ml.behavior_findings_count ?? 0)}</span></div><div class="kv-card"><span class="k">Analyzed Package</span><span class="v">${escD(ml.package)}</span></div></div>`;
+  if (strongest) { html += `<div class="score-bar-wrap" style="margin-bottom:16px"><div style="font-size:11px;color:var(--accent);letter-spacing:.1em">STRONGEST FINDING</div><div class="shap-row" style="background:var(--bg3);border-radius:6px;margin-top:6px"><div class="shap-name" style="font-weight:bold">${escD(strongest.name)}</div><div class="shap-track"><div class="shap-fill" style="width:${Math.min(100, Math.abs(strongest.value)*20)}%;background:${strongest.value>0?'var(--red)':'var(--green)'}"></div></div><div class="shap-val ${strongest.value>0?'pos':'neg'}">${strongest.value>0?'+':''}${strongest.value.toFixed(3)}</div></div></div>`; }
+  if (shapFactors.length) { html += `<div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:6px">SHAP contributions (top ${Math.min(8, shapFactors.length)})</div>`; shapFactors.slice(0,8).forEach(f => { const w = f.value, absW = Math.abs(w), barWidth = Math.min(100, absW * 20); html += `<div class="shap-row"><div class="shap-name">${escD(f.name)}</div><div class="shap-track"><div class="shap-fill" style="width:${barWidth}%;background:${w>0?'var(--red)':'var(--green)'}"></div></div><div class="shap-val ${w>0?'pos':'neg'}">${w>0?'+':''}${w.toFixed(4)}</div></div>`; }); } else { html += `<div class="empty">No SHAP values in public document.</div>`; }
+  container.innerHTML = html;
+}
+
+function renderKVFeatures(ml, runtime, cloud){
   const c=el2('dynamic-features-container');
   const merged={};
-  merged['Classification']=mlVerdict(ml);
-  merged['Risk probability']=Math.round(Number(ml.risk_probability||0)*100)+'%';
-  merged['Prediction value']=ml.prediction ?? '—';
-  merged['Run ID']=ml.run_id||'—';
-  merged['Runtime verdict']=runtime?.verdict||'—';
-  merged['Runtime score']=runtime?.score ?? runtime?.behavior_score ?? '—';
-  merged['Behavior findings count']=(runtime?.behavior_findings||[]).length;
-  merged['Processes count']=(runtime?.processes||[]).length;
-  merged['Accessed files count']=(runtime?.accessed_files||[]).length;
-  merged['Honeytoken hits count']=(runtime?.honeytoken_hits||[]).length;
-  merged['HTTP requests count']=(runtime?.http_requests||[]).length;
-  (ml.top_shap||[]).slice(0,10).forEach((x,i)=>{ merged['Model factor '+(i+1)]=cleanFeatureName(x[0])+' = '+(Number(x[1])||0).toFixed(4); });
-  
+  merged['Final Classification']=mlVerdict(ml);
+  merged['Risk Level']=ml.risk_level || runtime?.risk_level || '—';
+  merged['Runtime Score']=runtime?.score ?? runtime?.behavior_score ?? '—';
+  merged['Behavior Findings']=(runtime?.behavior_findings||[]).length;
+  merged['Strongest Finding']= (()=>{ const factors = normalizeModelFactors(ml.top_shap || []); const strong = strongestFinding(factors); return strong ? strong.name : '—'; })();
+  merged['Analyzed Package']=ml.package || '—';
+  const shapFactors = normalizeModelFactors(ml.top_shap || []);
+  shapFactors.slice(0,6).forEach((f,i)=>{ merged[`SHAP factor ${i+1}`]=`${f.name} = ${f.value>0?'+':''}${f.value.toFixed(4)}`; });
   const keys = Object.keys(merged).filter(k => isUsefulValue(merged[k]));
   if(!keys.length){c.innerHTML='<div class="empty">No analysis details extracted</div>';return}
   c.innerHTML='<div class="kv-grid">'+keys.map(k=>{ let raw=merged[k]; let v=displayRawValue(raw); let cls=''; if(/MALICIOUS|SUSPICIOUS|CRITICAL/i.test(v)){cls='true'} else if(!isNaN(parseFloat(v))&&Number(v)>0){cls='warn'} if(v.length>90)v=v.slice(0,90)+'…'; return `<div class="kv-card"><span class="k">${escD(k)}</span><span class="v ${cls}" title="${escD(displayRawValue(raw))}">${escD(v)}</span></div>` }).join('')+'</div>';
@@ -374,19 +391,35 @@ function renderSimpleD(id,arr,icon='○'){ const list=el2(id); if(!arr||!arr.len
 function renderNetworkD(n,reqs,memStrings){ const list=el2('net-list'); if(!n&&!reqs?.length&&!memStrings?.length){list.innerHTML='<div class="empty">No network data</div>';return} const ips=[...new Map(((n&&n.external_ips)||[]).map(i=>[i.ip,i])).values()]; let html=`<div class="kv-grid" style="margin-bottom:8px"><div class="kv-card"><span class="k">Real domains</span><span class="v">${((n&&n.real_domains)||[]).length}</span></div><div class="kv-card"><span class="k">External IPs</span><span class="v">${ips.length}</span></div><div class="kv-card"><span class="k">DNS queries</span><span class="v">${(n&&n.total_dns_queries)||0}</span></div><div class="kv-card"><span class="k">HTTP requests</span><span class="v">${(reqs||[]).length||((n&&n.total_http_requests)||0)}</span></div></div>`; html+=ips.length?ips.map(ip=>`<div class="net-card"><div class="net-ip">${escD(ip.ip)}</div>${ip.country?`<div class="net-detail">Country: <span>${escD(ip.country)} ${escD(ip.city||'')}</span></div>`:''}${ip.isp?`<div class="net-detail">ISP: <span>${escD(ip.isp)}</span></div>`:''}${ip.org?`<div class="net-detail">Org: <span>${escD(ip.org)}</span></div>`:''}${ip.risk?`<div class="net-detail">Risk: <span>${escD(ip.risk)}</span></div>`:''}</div>`).join(''):'<div class="empty">No external IPs contacted</div>'; if(reqs&&reqs.length){ html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin:12px 0 6px">Request details</div>`; html+=reqs.slice(0,40).map(r=>{const a=r.analysis||{}; let extra=''; if(a.large_exfil_attempt)extra+=`<div class="http-tag">⚠ Large payload (${escD(a.payload_size)} bytes)</div>`; if(a.base64_decoded)extra+='<div class="http-tag">⚠ Base64 content</div>'; if(a.sensitive_json_keys)extra+=`<div class="http-tag">⚠ Sensitive keys: ${escD(a.sensitive_json_keys.join(', '))}</div>`; if(r.user_agent)extra+=`<div class="http-tag">UA: ${escD(String(r.user_agent).slice(0,70))}</div>`; return `<div class="http-card"><div><span class="http-method ${escD(r.method||'GET')}">${escD(r.method||'GET')}</span><span class="http-path">${escD(r.path||'')}</span></div>${extra}</div>`}).join('') } if(memStrings&&memStrings.length){ const indicators=memStrings.map(String).filter(s=>/^http/i.test(s)||/^\d{1,3}(\.\d{1,3}){3}$/.test(s)).slice(0,30); if(indicators.length) html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin:12px 0 6px">Extracted network indicators</div>`+indicators.map(s=>`<span class="mem-chip ${/^http/i.test(s)?'url':'ip'}">${escD(s.length>80?s.slice(0,80)+'…':s)}</span>`).join('') } list.innerHTML=html }
 function renderDnsD(dns){ const list=el2('dns-list'); if(!dns||!dns.length){list.innerHTML='<div class="empty">No DNS queries</div>';return} list.innerHTML=dns.slice(0,50).map(d=>rowD('◈',escD(typeof d==='object'?(d.query||JSON.stringify(d)):d))).join('') }
 
+// FULL RENDERCLOUDD (dynamic, removes duplication, filters false/0/empty)
 function renderCloudD(cloud) {
   const c = el2('cloud-list');
-  const f = cloud?.dynamic_features || cloud?.ebpf_features || {};
-  if (!cloud || !Object.keys(f).length) { c.innerHTML = '<div class="empty">No cloud data found for this package</div>'; return; }
-  const important = ['final_result','risk_level','ebpf_accessed_root','ebpf_accessed_ssh','ebpf_accessed_etc','ebpf_security_ops','ebpf_network_ops','ebpf_process_ops','ebpf_file_ops','ebpf_privilege_escalation','ebpf_network_activity','ebpf_spawned_process','ebpf_remote_ips_count','ebpf_remote_ips','ebpf_remote_ports','network_external_ips_count','network_domains_count','network_dns_queries_count','network_http_requests_count','pattern_c2_communication','pattern_process_injection','pattern_malicious_probing','pattern_privilege_escalation','pattern_file_locking'];
-  const keys = [...important.filter(k => k in f),...Object.keys(f).filter(k => !important.includes(k))].filter(k => isUsefulValue(f[k]));
-  if (!keys.length) { c.innerHTML = '<div class="empty">No meaningful cloud indicators detected</div>'; return; }
-  c.innerHTML = '<div class="kv-grid">'+keys.map(k => { const raw = f[k]; let v = displayRawValue(raw); let cls = ''; if (/MALICIOUS|SUSPICIOUS|CRITICAL/i.test(v)) { cls = 'true'; } else if (!isNaN(parseFloat(v)) && Number(v) > 0) { cls = 'warn'; } if (v.length > 90) v = v.slice(0, 90) + '…'; return `<div class="kv-card"><span class="k">${escD(cleanFeatureName(k))}</span><span class="v ${cls}" title="${escD(displayRawValue(raw))}">${escD(v)}</span></div>` }).join('')+'</div>';
+  const f = {
+    ...(cloud?.ebpf_features || {}),
+    ...(cloud?.dynamic_features || {})
+  };
+  if (!cloud || !Object.keys(f).length) { c.innerHTML = '<div class="empty">No cloud/eBPF indicators available</div>'; return; }
+  const duplicatedOrWrongSection = new Set(['final_result','risk_level','runtime_verdict','runtime_score','feat_behavior_score','classification','prediction','prediction_value','risk_probability','ml_risk_probability','run_id','package','package_stem','processes','decoy_processes_spawned','runtime_processes_spawned','spawned_processes','ebpf_spawned_process','accessed_files','accessed_files_count','tmp_paths_accessed','ssh_paths_accessed','secret_paths_accessed','system_sensitive_paths_accessed','decoy_new_files_created','runtime_new_files_created','remote_ports','cloud_remote_ports','ebpf_remote_ports','remote_ips','cloud_remote_ips','ebpf_remote_ips','dns_queries','http_requests','network_domains_count','network_dns_queries_count','network_http_requests_count']);
+  const labelMap = { ebpf_file_ops:'Cloud File Operations', cloud_file_ops:'Cloud File Operations', ebpf_network_ops:'Cloud Network Operations', cloud_network_ops:'Cloud Network Operations', ebpf_security_ops:'Cloud Security Operations', cloud_security_ops:'Cloud Security Operations', ebpf_process_ops:'Cloud Process Operations', cloud_process_ops:'Cloud Process Operations', ebpf_network_activity:'Cloud Network Activity', ebpf_privilege_escalation:'Privilege Escalation Signal', ebpf_accessed_root:'Root Directory Access', ebpf_accessed_etc:'ETC Directory Access', ebpf_accessed_home:'Home Directory Access', ebpf_accessed_tmp:'TMP Directory Access', ebpf_accessed_ssh:'SSH Directory Access', ebpf_remote_ips_count:'Remote IPs Count', cloud_remote_ips_count:'Remote IPs Count', pattern_c2_communication:'C2 Communication Pattern', pattern_process_injection:'Process Injection Pattern', pattern_malicious_probing:'Malicious Probing Pattern', pattern_privilege_escalation:'Privilege Escalation Pattern', pattern_file_locking:'File Locking Pattern' };
+  const rowsByLabel = new Map();
+  Object.entries(f).forEach(([key, value]) => {
+    if (duplicatedOrWrongSection.has(key)) return;
+    if (!isUsefulValue(value)) return;
+    const label = labelMap[key] || cleanFeatureName(key);
+    if (!rowsByLabel.has(label)) { rowsByLabel.set(label, value); return; }
+    const oldValue = rowsByLabel.get(label);
+    if (Array.isArray(value) && value.length > (Array.isArray(oldValue) ? oldValue.length : 0)) rowsByLabel.set(label, value);
+    else if (!isNaN(Number(value)) && Number(value) > Number(oldValue || 0)) rowsByLabel.set(label, value);
+    else if (String(value).length > String(oldValue).length) rowsByLabel.set(label, value);
+  });
+  const rows = Array.from(rowsByLabel.entries());
+  if (!rows.length) { c.innerHTML = '<div class="empty">No unique cloud/eBPF indicators detected</div>'; return; }
+  c.innerHTML = '<div class="kv-grid">' + rows.map(([label, raw]) => { let v = displayRawValue(raw); let cls = ''; if (/true|yes|MALICIOUS|SUSPICIOUS|CRITICAL/i.test(v)) cls = 'true'; else if (!isNaN(parseFloat(v)) && Number(v) > 0) cls = 'warn'; if (v.length > 90) v = v.slice(0,90)+'…'; return `<div class="kv-card"><span class="k">${escD(label)}</span><span class="v ${cls}" title="${escD(displayRawValue(raw))}">${escD(v)}</span></div>`; }).join('') + '</div>';
 }
 
 function renderAll(ml, runtime, cloud) {
   updateMainBanner(ml, runtime, cloud);
-  renderKVFeatures(ml, runtime, cloud);
+  renderModelFactorCard(ml, cloud);
   renderFindingsD(runtime?.behavior_findings, runtime?.behavioral_phases);
   renderSimpleD('proc-list', runtime?.processes, '▶');
   const files = [...(runtime?.honeytoken_hits || []).map(x => 'HONEYTOKEN ACCESSED: ' + x), ...(runtime?.accessed_files || [])];
@@ -399,9 +432,7 @@ function renderAll(ml, runtime, cloud) {
 }
 </script>
 </div>
-<!-- ══════════════════════════════════════════
-     TAB SWITCHING
-════════════════════════════════════════════ -->
+
 <script>
 function switchTab(name, btn) {
     document.querySelectorAll('.dash-panel').forEach(function(p) { p.classList.remove('active'); });
@@ -448,62 +479,60 @@ function toDateString(value) {
 function normalizePublicDoc(d) {
   const ml = {
     package: d.package || "—",
-    prediction: d.ml_prediction,
-    risk_probability: d.risk_probability || 0,
+    prediction: d.ml_prediction ?? d.prediction ?? 0,
+    risk_probability: d.risk_probability ?? d.ml_risk_probability ?? 0,
+    risk_level: d.risk_level || "—",
+    runtime_score: d.runtime_score || 0,
+    behavior_findings_count: (d.top_findings || []).length,
     run_id: d.run_id || "—",
     timestamp: toDateString(d.updated_at),
-    top_shap: [],
+    top_shap: d.top_shap || d.model_factors || d.shap_values || d.ml_explanation?.top_features || d.ml_explanation?.top_shap || [],
     features: {}
   };
-
   const runtime = {
     package: d.package || "—",
     verdict: d.final_result || d.runtime_verdict || "BENIGN",
     score: d.runtime_score || 0,
+    risk_level: d.risk_level || "—",
     run_timestamp: toDateString(d.updated_at),
     behavior_findings: d.top_findings || [],
-    behavioral_phases: {},
-    package_metadata: {},
+    behavioral_phases: d.behavioral_phases || {},
     honeytoken_hits: [],
     accessed_files: [],
     processes: [],
     network_analysis: { real_domains: [], external_ips: [], total_dns_queries: d.network_summary?.dns_queries_count || 0, total_http_requests: d.network_summary?.http_requests_count || 0, total_unique_ips: d.network_summary?.external_ips_count || 0 },
     dns: [],
     http_requests: [],
-    memory_strings: [],
-    timeline: [],
-    dynamic_features: { ...(d.dynamic_features || {}), ...(d.public_runtime_values || {}), ...(d.public_ebpf_values || {}) }
+    memory_strings: []
   };
-
   const publicRuntime = d.public_runtime_values || {};
   runtime.accessed_files = publicRuntime.accessed_files || [];
   runtime.processes = publicRuntime.processes || [];
   runtime.dns = publicRuntime.dns_queries || [];
   runtime.http_requests = publicRuntime.http_requests || [];
   runtime.network_analysis.external_ips = (publicRuntime.remote_ips || []).map(ip => ({ ip }));
-  runtime.network_analysis.total_unique_ips = (publicRuntime.remote_ips || []).length;
-  if (publicRuntime.remote_ips?.length) { runtime.memory_strings = [...(runtime.memory_strings || []),...publicRuntime.remote_ips]; }
-  if (publicRuntime.ssh_paths_accessed?.length) { runtime.accessed_files.push(...publicRuntime.ssh_paths_accessed); }
-  if (publicRuntime.secret_paths_accessed?.length) { runtime.accessed_files.push(...publicRuntime.secret_paths_accessed); }
-  if (publicRuntime.system_sensitive_paths_accessed?.length) { runtime.accessed_files.push(...publicRuntime.system_sensitive_paths_accessed); }
-
+  if (publicRuntime.remote_ips?.length) runtime.memory_strings = [...(runtime.memory_strings || []), ...publicRuntime.remote_ips];
   const honeySummary = d.honeytoken_summary || {};
   if (honeySummary.triggered || honeySummary.hit_count > 0) {
     const count = honeySummary.hit_count || 0;
     const types = honeySummary.types || [];
     runtime.honeytoken_hits = types.length ? types.map(t => `${t} (${count} hit${count === 1 ? "" : "s"})`) : [`honeytoken triggered (${count} hit${count === 1 ? "" : "s"})`];
-    runtime.accessed_files = runtime.honeytoken_hits;
   }
-
+  // CLOUD: no runtime values ever
   const cloud = {
     analysis_type: "firestore_dashboard_public",
     run_timestamp: toDateString(d.updated_at),
-    dynamic_features: { ...(d.ebpf_features || {}), ...(d.public_ebpf_values || {}), ...(d.public_runtime_values || {}), final_result: d.final_result || "—", risk_level: d.risk_level || "—", network_external_ips_count: d.network_summary?.external_ips_count || 0, network_domains_count: d.network_summary?.domains_count || 0, network_dns_queries_count: d.network_summary?.dns_queries_count || 0, network_http_requests_count: d.network_summary?.http_requests_count || 0, honeytoken_hit_count: honeySummary.hit_count || 0, honeytoken_triggered: honeySummary.triggered || false },
+    dynamic_features: {
+      ...(d.ebpf_features || {}),
+      ...(d.public_ebpf_values || {}),
+      cloud_file_ops: d.public_ebpf_values?.cloud_file_ops || d.ebpf_features?.ebpf_file_ops || null,
+      cloud_network_ops: d.public_ebpf_values?.cloud_network_ops || d.ebpf_features?.ebpf_network_ops || null,
+      cloud_security_ops: d.public_ebpf_values?.cloud_security_ops || d.ebpf_features?.ebpf_security_ops || null,
+      cloud_process_ops: d.public_ebpf_values?.cloud_process_ops || d.ebpf_features?.ebpf_process_ops || null,
+      cloud_remote_ips_count: d.network_summary?.external_ips_count || d.ebpf_features?.ebpf_remote_ips_count || null
+    },
     ebpf_features: { ...(d.ebpf_features || {}), ...(d.public_ebpf_values || {}) }
   };
-
-  if (d.network_summary?.countries?.length) { runtime.network_analysis.real_domains = d.network_summary.countries.map(c => `country:${c}`); }
-
   return { ml, runtime, cloud };
 }
 
@@ -511,17 +540,15 @@ async function loadFirestoreDashboard() {
   try {
     const latestRef = doc(db, "dashboard_public", "latest");
     const latestSnap = await getDoc(latestRef);
-    if (!latestSnap.exists()) { document.getElementById("dashboard-last-updated").textContent = "No Firestore data yet. Run the workflow once."; document.getElementById("b-pkg").textContent = "—"; document.getElementById("b-verdict").textContent = "NO DATA"; return; }
+    if (!latestSnap.exists()) { document.getElementById("dashboard-last-updated").textContent = "No Firestore data yet."; return; }
     const publicData = latestSnap.data();
     const mapped = normalizePublicDoc(publicData);
     renderAll(mapped.ml, mapped.runtime, mapped.cloud);
     document.getElementById("dashboard-last-updated").textContent = "Firestore · " + toDateString(publicData.updated_at);
-  } catch (err) { console.error("Firestore dashboard load failed:", err); document.getElementById("dashboard-last-updated").textContent = "Firestore error: " + err.message; }
+  } catch (err) { console.error("Firestore error:", err); }
 }
-
-const DASHBOARD_REFRESH_MS = 5 * 60 * 1000;
 loadFirestoreDashboard();
-setInterval(loadFirestoreDashboard, DASHBOARD_REFRESH_MS);
+setInterval(loadFirestoreDashboard, 5 * 60 * 1000);
 </script>
 
 </body>
