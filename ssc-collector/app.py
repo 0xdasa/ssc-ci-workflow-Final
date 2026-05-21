@@ -322,7 +322,7 @@ def build_stix_bundle(event):
         "name":           "SSC Honeypot Collector",
         "identity_class": "system",
         "description":    "Honeytoken collector deployed in CI/CD workflow.",
-        "labels":         ["honeypot", "threat-intelligence"]
+        "labels":         ["honeytoken", "threat-intelligence"]
     })
  
     # 2. IPv4
