@@ -295,7 +295,7 @@ def build_stix_bundle(event):
  
     high_confidence = (abuse_score >= 80 or vt_malicious >= 5)
  
-    labels = ["honeypot-hit"]
+    labels = ["honeytoken-hit"]
     if is_tor:       labels.append("tor-exit-node")
     if is_vpn:       labels.append("vpn")
     if is_bot:       labels.append("automated-scanner")
@@ -576,8 +576,7 @@ def process_event(event):
 def scm():
     event = build_path_event("legacy_registry", 1, "/legacy_internal_config.yaml")
     process_event(event)
-    return """
-ci:
+    yaml_content = """ci:
   provider: github-actions
   runner: self-hosted
   token: ghp_91kLmN8QxZ7aBcD3EfGhIjK4LmNoPqRsTuVwXyZ
@@ -610,7 +609,12 @@ docker:
 env:
   NODE_ENV: production
   DEBUG: false
-""", 200
+"""
+    return app.response_class(
+        response=yaml_content,
+        status=200,
+        mimetype="text/plain"
+    )
  
 @app.route("/s3/<bucket>", methods=["GET", "POST", "PUT"])
 def s3(bucket):
@@ -650,7 +654,6 @@ def debug_env():
         "GITHUB_TOKEN":  "SET" if GITHUB_TOKEN else "MISSING",
         "GITHUB_REPO":   GITHUB_REPO or "MISSING",
         "ABUSE_API_KEY": "SET" if ABUSE_API_KEY else "MISSING",
-        "IPQS_API_KEY":  "SET" if IPQS_API_KEY else "MISSING",
         "SHODAN_API_KEY":"SET" if SHODAN_API_KEY else "MISSING",
         "VT_API_KEY":    "SET" if VT_API_KEY else "MISSING",
         "STIX_FILE":     STIX_FILE,
