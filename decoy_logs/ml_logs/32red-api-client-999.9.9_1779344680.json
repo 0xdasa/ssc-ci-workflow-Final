@@ -473,5 +473,19 @@
         "heteregeneous identifiers in metadata": {
             "0": 0
         }
+    },
+    "static_analysis": {
+        "yara_credential_theft_indicators": "False",
+        "yara_exfiltration_indicators": "False",
+        "yara_shell_execution_indicators": "False",
+        "yara_command_execution_indicators": "False",
+        "yara_obfuscation_indicators": "False",
+        "yara_persistence_indicators": "False",
+        "yara_install_hook_indicators": "False",
+        "yara_suspicious_imports_indicators": "False",
+        "semgrep_has_exec_call": "False",
+        "semgrep_has_subprocess": "False",
+        "semgrep_has_network_request": "False",
+        "semgrep_has_secret_access": "False"
     }
 }
