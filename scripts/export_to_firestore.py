@@ -257,6 +257,226 @@ def sanitize_for_firestore(value, depth=0):
     return str(value)
 
 
+# ============================================================
+# دوال استخراج القيم المفيدة (تمت إضافتها)
+# ============================================================
+
+def safe_list(value, limit=20):
+    if not value:
+        return []
+    if isinstance(value, list):
+        out = []
+        for item in value:
+            if item is None:
+                continue
+            s = str(item).strip()
+            if s and s not in out:
+                out.append(s)
+        return out[:limit]
+    s = str(value).strip()
+    return [s] if s else []
+
+
+def compact_dict(d):
+    """
+    Keep only meaningful public values.
+    Remove empty, false, zero, none-like values.
+    """
+    if not isinstance(d, dict):
+        return {}
+
+    cleaned = {}
+    for k, v in d.items():
+        if v is None:
+            continue
+
+        if isinstance(v, bool):
+            if v is True:
+                cleaned[k] = v
+            continue
+
+        if isinstance(v, (int, float)):
+            if v != 0:
+                cleaned[k] = v
+            continue
+
+        if isinstance(v, str):
+            s = v.strip()
+            if s and s.lower() not in {"none", "null", "undefined", "false", "0", "—"}:
+                cleaned[k] = s
+            continue
+
+        if isinstance(v, list):
+            arr = safe_list(v)
+            if arr:
+                cleaned[k] = arr
+            continue
+
+        if isinstance(v, dict):
+            nested = compact_dict(v)
+            if nested:
+                cleaned[k] = nested
+
+    return cleaned
+
+
+def extract_paths_matching(events, keywords, limit=20):
+    """
+    Extract file paths from runtime/eBPF events using keywords.
+    Example keywords: ['.ssh', 'authorized_keys']
+    """
+    found = []
+    keywords = [k.lower() for k in keywords]
+
+    for item in events or []:
+        text = item.get("event") if isinstance(item, dict) else str(item)
+        text = str(text)
+
+        if not any(k in text.lower() for k in keywords):
+            continue
+
+        matches = re.findall(r'(/[A-Za-z0-9._@%+=:,/~\-]+)', text)
+        for m in matches:
+            if any(k in m.lower() for k in keywords):
+                if m not in found:
+                    found.append(m)
+
+    return found[:limit]
+
+
+def extract_remote_ports(events, limit=30):
+    found = []
+
+    for item in events or []:
+        text = item.get("event") if isinstance(item, dict) else str(item)
+        text = str(text)
+
+        # Match common socket/connect traces with ports
+        for p in re.findall(r'htons\((\d+)\)', text):
+            if p not in found:
+                found.append(p)
+
+        # Match plain suspicious ports if logged directly
+        for p in re.findall(r'\b(21|22|23|25|53|80|443|4444|5555|6667|8080|9001)\b', text):
+            if p not in found:
+                found.append(p)
+
+    return found[:limit]
+
+
+def extract_ips_from_anything(obj, limit=30):
+    text = str(obj)
+    ips = re.findall(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', text)
+
+    cleaned = []
+    for ip in ips:
+        if ip.startswith("127.") or ip == "0.0.0.0":
+            continue
+        if ip not in cleaned:
+            cleaned.append(ip)
+
+    return cleaned[:limit]
+
+
+def extract_public_runtime_values(raw_runtime_doc):
+    """
+    Extract meaningful public-safe values from restricted raw_runtime_logs.
+    No full raw logs are exposed.
+    """
+    raw_runtime_doc = raw_runtime_doc or {}
+
+    timeline = raw_runtime_doc.get("timeline") or []
+    accessed_files = safe_list(raw_runtime_doc.get("accessed_files"), 30)
+    processes = safe_list(raw_runtime_doc.get("processes"), 20)
+    honeytoken_hits = safe_list(raw_runtime_doc.get("honeytoken_hits"), 20)
+    http_requests = raw_runtime_doc.get("http_requests") or []
+    dns = raw_runtime_doc.get("dns") or []
+    network = raw_runtime_doc.get("network_analysis") or {}
+
+    ssh_paths = extract_paths_matching(timeline, [".ssh", "authorized_keys", "id_rsa"])
+    env_paths = extract_paths_matching(timeline, [".env", "credentials", "secrets"])
+    passwd_paths = extract_paths_matching(timeline, ["/etc/passwd", "/etc/shadow"])
+    tmp_paths = extract_paths_matching(timeline, ["/tmp"], limit=10)
+
+    remote_ips = []
+    if isinstance(network, dict):
+        for item in network.get("external_ips", []) or []:
+            if isinstance(item, dict) and item.get("ip"):
+                remote_ips.append(str(item.get("ip")))
+            elif item:
+                remote_ips.append(str(item))
+
+    remote_ips += extract_ips_from_anything(raw_runtime_doc)
+    remote_ips = safe_list(remote_ips, 20)
+
+    remote_ports = extract_remote_ports(timeline)
+
+    public_runtime_values = {
+        "accessed_files": accessed_files[:20],
+        "processes": processes[:20],
+        "honeytoken_paths": honeytoken_hits,
+        "ssh_paths_accessed": ssh_paths,
+        "secret_paths_accessed": env_paths,
+        "system_sensitive_paths_accessed": passwd_paths,
+        "tmp_paths_accessed": tmp_paths,
+        "remote_ips": remote_ips,
+        "remote_ports": remote_ports,
+        "dns_queries": safe_list(dns, 20),
+        "http_requests": [
+            {
+                "method": r.get("method", "GET"),
+                "path": r.get("path", ""),
+                "host": r.get("host", ""),
+            }
+            for r in http_requests[:15]
+            if isinstance(r, dict)
+        ],
+    }
+
+    return compact_dict(public_runtime_values)
+
+
+def extract_public_ebpf_values(raw_ebpf_doc):
+    """
+    Extract meaningful public-safe values from restricted raw_ebpf_logs.
+    """
+    raw_ebpf_doc = raw_ebpf_doc or {}
+
+    features = (
+        raw_ebpf_doc.get("dynamic_features")
+        or raw_ebpf_doc.get("ebpf_features")
+        or raw_ebpf_doc
+        or {}
+    )
+
+    public_ebpf_values = {}
+
+    if isinstance(features, dict):
+        remote_ips = features.get("ebpf_remote_ips") or features.get("remote_ips")
+        remote_ports = features.get("ebpf_remote_ports") or features.get("remote_ports")
+
+        public_ebpf_values.update({
+            "cloud_remote_ips": safe_list(remote_ips, 20),
+            "cloud_remote_ports": safe_list(remote_ports, 20),
+            "cloud_security_ops": features.get("ebpf_security_ops"),
+            "cloud_network_ops": features.get("ebpf_network_ops"),
+            "cloud_process_ops": features.get("ebpf_process_ops"),
+            "cloud_file_ops": features.get("ebpf_file_ops"),
+            "root_dir_access_count": features.get("root_dir_access"),
+            "home_dir_access_count": features.get("home_dir_access"),
+            "etc_dir_access_count": features.get("etc_dir_access"),
+            "tmp_dir_access_count": features.get("tmp_dir_access"),
+            "other_dir_access_count": features.get("other_dir_access"),
+        })
+
+    return compact_dict(public_ebpf_values)
+
+
+# ============================================================
+# نهاية دوال استخراج القيم المفيدة
+# ============================================================
+
+
 def init_firestore():
     service_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
 
@@ -304,6 +524,12 @@ def main():
     dynamic_features = runtime_log.get("dynamic_features", {}) or {}
     ebpf_features = ebpf_log.get("ebpf_features", {}) or {}
 
+    # ============================================================
+    # استخراج القيم العامة قبل إنشاء public_doc
+    # ============================================================
+    public_runtime_values = extract_public_runtime_values(runtime_log)
+    public_ebpf_values = extract_public_ebpf_values(ebpf_log)
+
     public_doc = {
         "run_id": run_id,
         "package": package_file,
@@ -328,8 +554,11 @@ def main():
             for f in behavior_findings[:10]
             if isinstance(f, dict)
         ],
-        "dynamic_features": dynamic_features,
-        "ebpf_features": ebpf_features,
+        "dynamic_features": compact_dict(dynamic_features),
+        "ebpf_features": compact_dict(ebpf_features),
+        # الحقول الجديدة
+        "public_runtime_values": public_runtime_values,
+        "public_ebpf_values": public_ebpf_values,
         "sources": {
             "ml_log": ml_source,
             "runtime_log": runtime_source,
