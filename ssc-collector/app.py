@@ -497,7 +497,7 @@ def save_stix_to_github(bundle: dict):
  
     url     = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{STIX_FILE}"
     headers = {
-        "Authorization": f"token {GITHUB_TOKEN}",
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
         "Accept":        "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28"
     }
