@@ -534,8 +534,6 @@ function renderRuntimeEvidenceD(runtime) {
     'DNS Queries':
       df.dns_queries || runtime?.dns,
 
-    'Findings':
-      runtime?.behavior_findings?.map(f => `${cleanFeatureName(f.label)} (${f.tier}, +${f.weight})`)
   };
 
   const finalRows = Object.entries(rows).filter(([label, value]) => {
