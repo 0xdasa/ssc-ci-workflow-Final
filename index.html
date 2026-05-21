@@ -525,15 +525,6 @@ function renderRuntimeEvidenceD(runtime) {
     'Accessed Files':
       df.accessed_files || runtime?.accessed_files,
 
-    'Honeytoken Paths':
-      df.honeytoken_paths || runtime?.honeytoken_hits,
-
-    'HTTP Requests':
-      df.http_requests || runtime?.http_requests,
-
-    'DNS Queries':
-      df.dns_queries || runtime?.dns,
-
   };
 
   const finalRows = Object.entries(rows).filter(([label, value]) => {
