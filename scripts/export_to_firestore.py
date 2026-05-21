@@ -319,7 +319,15 @@ def compact_dict(d):
 
 
 def extract_top_shap(raw_ml_doc, limit=10):
+    """
+    Extract SHAP values from ML document with support for multiple formats.
+    Returns list of dicts with 'feature' and 'value' keys.
+    """
     raw_ml_doc = raw_ml_doc or {}
+
+    # لو الداتا جاية داخل wrapper مثل {"data": {...}}
+    if isinstance(raw_ml_doc, dict) and isinstance(raw_ml_doc.get("data"), dict):
+        raw_ml_doc = raw_ml_doc.get("data") or {}
 
     candidates = [
         raw_ml_doc.get("top_shap"),
@@ -328,46 +336,76 @@ def extract_top_shap(raw_ml_doc, limit=10):
         raw_ml_doc.get("shap_explanations"),
         raw_ml_doc.get("explanations"),
         raw_ml_doc.get("feature_importance"),
+        raw_ml_doc.get("ml_explanation", {}).get("top_features") if isinstance(raw_ml_doc.get("ml_explanation"), dict) else None,
+        raw_ml_doc.get("ml_explanation", {}).get("top_shap") if isinstance(raw_ml_doc.get("ml_explanation"), dict) else None,
     ]
+
+    def to_number(value):
+        try:
+            if value is None:
+                return None
+            return float(value)
+        except Exception:
+            return None
+
+    def add_item(out, name, value):
+        value = to_number(value)
+        if name is None or value is None:
+            return
+
+        # مهم: نخزنها كـ dict وليس [name, value]
+        # عشان Firestore ما يحولها إلى nested array
+        out.append({
+            "feature": str(name),
+            "value": value
+        })
 
     for item in candidates:
         if not item:
             continue
 
+        out = []
+
         if isinstance(item, list):
-            out = []
             for x in item:
                 if isinstance(x, dict):
+                    # دعم الشكل اللي Firestore ممكن يكون حوله من nested array
+                    if "items" in x and isinstance(x.get("items"), list) and len(x.get("items")) >= 2:
+                        add_item(out, x["items"][0], x["items"][1])
+                        continue
+
                     name = (
                         x.get("feature")
                         or x.get("name")
                         or x.get("key")
                         or x.get("feature_name")
                     )
+
                     value = (
                         x.get("value")
-                        or x.get("shap_value")
-                        or x.get("impact")
-                        or x.get("score")
+                        if x.get("value") is not None
+                        else x.get("shap_value")
+                        if x.get("shap_value") is not None
+                        else x.get("impact")
+                        if x.get("impact") is not None
+                        else x.get("score")
                     )
-                    if name is not None and value is not None:
-                        out.append([str(name), float(value)])
+
+                    add_item(out, name, value)
+
                 elif isinstance(x, (list, tuple)) and len(x) >= 2:
-                    out.append([str(x[0]), float(x[1])])
+                    add_item(out, x[0], x[1])
 
             if out:
+                out.sort(key=lambda x: abs(x["value"]), reverse=True)
                 return out[:limit]
 
         if isinstance(item, dict):
-            out = []
             for k, v in item.items():
-                try:
-                    out.append([str(k), float(v)])
-                except Exception:
-                    pass
+                add_item(out, k, v)
 
             if out:
-                out.sort(key=lambda x: abs(x[1]), reverse=True)
+                out.sort(key=lambda x: abs(x["value"]), reverse=True)
                 return out[:limit]
 
     return []
@@ -565,6 +603,9 @@ def main():
     runtime_log, runtime_source = find_runtime_log(package_file, github_run_number)
     ebpf_log, ebpf_source = find_ebpf_log(package_file, github_run_number)
 
+    # استخراج SHAP من ml_log مباشرة
+    top_shap_values = extract_top_shap(ml_log)
+
     final_result = decide_result(ml_log, runtime_log, ebpf_log)
     probability = float(ml_log.get("risk_probability", 0) or 0)
     runtime_score = int(runtime_log.get("score", 0) or 0)
@@ -605,7 +646,6 @@ def main():
         ],
         "dynamic_features": compact_dict(dynamic_features),
         "ebpf_features": compact_dict(ebpf_features),
-        # الحقول الجديدة
         "public_runtime_values": public_runtime_values,
         "public_ebpf_values": public_ebpf_values,
         "sources": {
@@ -615,6 +655,7 @@ def main():
         },
         "updated_at": now,
         "expires_at": summary_expires,
+        "top_shap": top_shap_values,  # إضافة SHAP هنا
     }
 
     analysis_doc = {
@@ -686,8 +727,7 @@ def main():
         "expires_at": raw_expires,
     }
 
-    public_doc["top_shap"] = extract_top_shap(raw_ml_doc.get("data", raw_ml_doc))
-
+    # تطبيق التنظيف على جميع المستندات
     analysis_doc = sanitize_for_firestore(analysis_doc)
     raw_meta_doc = sanitize_for_firestore(raw_meta_doc)
     raw_ml_doc = sanitize_for_firestore(raw_ml_doc)
@@ -716,6 +756,7 @@ def main():
     print("dashboard_public/latest updated")
     print("dashboard_public_runs/" + run_id + " created")
     print("restricted raw logs saved")
+    print(f"top_shap extracted: {len(top_shap_values)} features")
 
 
 if __name__ == "__main__":
