@@ -53,6 +53,7 @@ def startup_checks():
             print(f"[STARTUP] GitHub repo access: EXCEPTION ✗ → {e}")
     else:
         print("[STARTUP] Skipping GitHub test — token or repo missing")
+    load_blocked_ips() 
     print("=" * 60)
  
 # =====================================================
@@ -69,6 +70,71 @@ def cached_lookup(ip, func):
     CACHE[ip][func.__name__] = data
     return data
  
+# =====================================================
+# BLOCKED IPs
+
+BLOCKED_IPS_FILE = "CTI_Storage/blocked_ips.json"
+blocked_ips = set()
+
+def load_blocked_ips():
+    global blocked_ips
+    if not GITHUB_TOKEN or not GITHUB_REPO:
+        return
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{BLOCKED_IPS_FILE}"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
+    try:
+        r = requests.get(url, headers=headers, timeout=10)
+        if r.status_code == 200:
+            raw = base64.b64decode(r.json()["content"]).decode("utf-8")
+            blocked_ips = set(json.loads(raw))
+            print(f"[BLOCK] Loaded {len(blocked_ips)} blocked IPs from GitHub")
+        else:
+            print("[BLOCK] No blocked_ips.json found — starting fresh")
+    except Exception as e:
+        print(f"[BLOCK] Failed to load blocked IPs: {e}")
+
+def save_blocked_ip(ip):
+    global blocked_ips
+    blocked_ips.add(ip)
+    if not GITHUB_TOKEN or not GITHUB_REPO:
+        return
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{BLOCKED_IPS_FILE}"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    # Get existing SHA if file exists
+    sha = None
+    try:
+        r = requests.get(url, headers=headers, timeout=10)
+        if r.status_code == 200:
+            sha = r.json()["sha"]
+    except Exception as e:
+        print(f"[BLOCK] GET sha failed: {e}")
+
+    # Upload updated list
+    try:
+        content = json.dumps(list(blocked_ips), indent=2)
+        encoded = base64.b64encode(content.encode("utf-8")).decode()
+        payload = {
+            "message": f"block: {ip}",
+            "content": encoded,
+            "branch": "main"
+        }
+        if sha:
+            payload["sha"] = sha
+        put_r = requests.put(url, headers=headers, json=payload, timeout=15)
+        if put_r.status_code in (200, 201):
+            print(f"[BLOCK] ✓ IP {ip} saved to GitHub")
+        else:
+            print(f"[BLOCK] ✗ Failed to save: {put_r.text[:300]}")
+    except Exception as e:
+        print(f"[BLOCK] Save EXCEPTION: {e}")
+     
 # =====================================================
 # DEDUP
  
@@ -571,10 +637,19 @@ def process_event(event):
  
 # =====================================================
 # ROUTES
+
+@app.before_request
+def block_ips():
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    ip = ip.split(",")[0].strip()
+    if ip in blocked_ips:
+        print(f"[BLOCK] Blocked IP attempted access: {ip}")
+        return jsonify({"error": "Forbidden"}), 403
  
 @app.route("/legacy_internal_config.yaml", methods=["GET"])
 def scm():
     event = build_path_event("legacy_registry", 1, "/legacy_internal_config.yaml")
+    save_blocked_ip(event["ip"])
     process_event(event)
     yaml_content = """ci:
   provider: github-actions
@@ -619,6 +694,7 @@ env:
 @app.route("/s3/<bucket>", methods=["GET", "POST", "PUT"])
 def s3(bucket):
     event = build_path_event("s3", 3, f"/s3/{bucket}")
+    save_blocked_ip(event["ip"])
     process_event(event)
     return "denied", 403
  
@@ -633,6 +709,7 @@ def session():
         if token == data["token"]:
             event = build_path_event(name, data["privilege_level"], "/api/v1/session")
             event["event_type"] = "credential_misuse"
+            save_blocked_ip(event["ip"])
             process_event(event)
             return jsonify({
                 "id": "sess_9f8a7c6b5d",
