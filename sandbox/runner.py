@@ -10,11 +10,9 @@ import base64
 import threading
 import urllib.request
 import string
-import ast
 import math
 import ipaddress
 from collections import Counter
-from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from dnslib.server import DNSServer, BaseResolver
 from dnslib import RR, A
@@ -50,12 +48,6 @@ def is_private_ip(ip):
         return ipaddress.ip_address(ip).is_private
     except Exception:
         return True
-
-def calculate_entropy(text):
-    if not text: return 0.0
-    counts = Counter(text)
-    total  = len(text)
-    return -sum((c / total) * math.log2(c / total) for c in counts.values())
 
 def edit_distance(a, b):
     m, n = len(a), len(b)
@@ -192,37 +184,6 @@ def start_dns():
 
 threading.Thread(target=start_dns, daemon=True).start()
 
-# ============================================================
-# HONEYTOKENS
-# ============================================================
-
-HONEYTOKEN_PROFILES = {
-    ".env":             "aws_env_key",
-    ".aws/credentials": "aws_credentials",
-    "config.json":      "api_config",
-    ".ssh/id_rsa":      "ssh_private_key",
-    "secrets.yaml":     "yaml_secrets",
-    ".fake_db_secret":  "temp_db_secret",
-}
-
-def setup_honeytokens(base_dir):
-    tokens = {
-        ".env":             "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7FAKE123\nAWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/FAKE/KEY\nDB_PASSWORD=honey_db_pass_2024\n",
-        ".aws/credentials": "[default]\naws_access_key_id=AKIAIOSFODNN7FAKE\naws_secret_access_key=wJalrXUtnFEMI/FAKE/bPxRfiCYEXAMPLEKEY\n",
-        "config.json":      json.dumps({"api_key":"honey_sk-proj-fake123","db_host":"10.0.0.1","db_pass":"honey_db_2024"}, indent=2),
-        ".ssh/id_rsa":      "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEAFAKEFAKEFAKE\n-----END RSA PRIVATE KEY-----\n",
-        "secrets.yaml":     "database:\n  password: honey_yaml_pass_2024\nstripe:\n  secret_key: sk_live_FAKE_HONEY_KEY\n",
-        "/tmp/.fake_db_secret": "DB_SECRET=honey_temp_db_secret_2024\nDB_PASS=honey_db_pass_9999\n",
-    }
-    for rel_path, content in tokens.items():
-        if rel_path.startswith("/"):
-            full_path = rel_path
-        else:
-            full_path = os.path.join(base_dir, rel_path)
-        os.makedirs(os.path.dirname(full_path), exist_ok=True)
-        with open(full_path, "w") as f:
-            f.write(content)
-
 def analyze_package_metadata(package_dir):
     findings = {}
     setup_py = os.path.join(package_dir, "setup.py")
@@ -249,8 +210,6 @@ def analyze_package_metadata(package_dir):
 # ============================================================
 
 HIGH_RISK_COUNTRIES = {"North Korea", "Iran", "Syria"}
-WORKING_HOURS_START = 8    # 08:00 Riyadh time (UTC+3)
-WORKING_HOURS_END   = 16   # 16:00 Riyadh time
 
 WEIGHTS = {"critical": 10, "high": 5, "medium": 2, "low": 1}
 
@@ -281,7 +240,7 @@ BEHAVIOR_RULES = [
 
 
 def calculate_score(strace_lines, external_ips_info=None,
-                    honeytoken_hits=None, captured_requests=None):
+                    captured_requests=None):
     score    = 0
     findings = []
     seen     = set()
@@ -295,13 +254,6 @@ def calculate_score(strace_lines, external_ips_info=None,
                 findings.append({"label": label, "tier": tier, "weight": WEIGHTS[tier], "evidence": line[:150]})
                 seen.add(label)
 
-    # Policy: outside working hours (UTC+3)
-    hour_riyadh = (datetime.utcnow().hour + 3) % 24
-    if not (WORKING_HOURS_START <= hour_riyadh < WORKING_HOURS_END):
-        score += 5
-        findings.append({"label": "activity_outside_working_hours", "tier": "high", "weight": 5,
-                          "evidence": f"Activity at {hour_riyadh}:00 Riyadh time"})
-
     # Policy: high-risk country
     if external_ips_info:
         for ip_info in external_ips_info:
@@ -311,12 +263,6 @@ def calculate_score(strace_lines, external_ips_info=None,
                 findings.append({"label": "connection_to_high_risk_country", "tier": "critical",
                                   "weight": 15, "evidence": f"Connected to IP in {country}"})
                 break
-
-    # Policy: honeytoken — highest weight
-    if honeytoken_hits:
-        score += 50
-        findings.append({"label": "honeytoken_triggered", "tier": "critical", "weight": 50,
-                          "evidence": f"Accessed {len(honeytoken_hits)} honeytoken(s)"})
 
     # Policy: HTTP exfiltration
     if captured_requests:
@@ -516,43 +462,6 @@ def _extract_strings_from_bytes(data):
     return found
 
 # ============================================================
-# PROCESS GRAPH
-# ============================================================
-
-def build_process_graph(processes, accessed_files, network_analysis, honeytoken_hits):
-    nodes = []; edges = []; node_id = 1
-    nodes.append({"id": node_id, "label": "Package", "type": "root"})
-    root = node_id
-    process_map = {}
-    for p in set(processes):
-        node_id += 1
-        nodes.append({"id": node_id, "label": p, "type": "process"})
-        edges.append({"from": root, "to": node_id})
-        process_map[p] = node_id
-    if not process_map: return {"nodes": nodes, "edges": edges}
-    main_proc = list(process_map.values())[0]
-    sensitive_keywords = ["/etc/passwd","/etc/shadow",".ssh",".env"]
-    for f in accessed_files[:20]:
-        node_id += 1
-        is_sensitive = any(k in f for k in sensitive_keywords)
-        nodes.append({"id": node_id, "label": os.path.basename(f),
-                      "type": "sensitive_file" if is_sensitive else "file"})
-        edges.append({"from": main_proc, "to": node_id})
-    for d in network_analysis.get("real_domains",[])[:10]:
-        node_id += 1
-        nodes.append({"id": node_id, "label": d, "type": "domain"})
-        edges.append({"from": main_proc, "to": node_id})
-    for ip in network_analysis.get("external_ips",[])[:10]:
-        node_id += 1
-        nodes.append({"id": node_id, "label": ip["ip"], "type": "ip"})
-        edges.append({"from": main_proc, "to": node_id})
-    for h in honeytoken_hits:
-        node_id += 1
-        nodes.append({"id": node_id, "label": "HONEY: "+os.path.basename(h), "type": "honey"})
-        edges.append({"from": root, "to": node_id})
-    return {"nodes": nodes, "edges": edges}
-
-# ============================================================
 # FILESYSTEM SNAPSHOT
 # ============================================================
 
@@ -581,7 +490,6 @@ SENSITIVE_FILE_PATTERNS = [
     "/.ssh/","/.aws/","/.env","/.bashrc","/.profile","/root/",
     "/secrets","/credentials",
 ]
-SYSTEM_FILE_PREFIXES = ["/usr/lib/","/usr/local/lib/","/usr/share/","/tmp/","__pycache__",".pyc"]
 
 # ============================================================
 # PROC-BASED BEHAVIORAL MONITOR
@@ -671,7 +579,7 @@ def monitor_process_behavior(pid: int, duration: int = 120) -> dict:
     
 def extract_dynamic_features(
     processes, accessed_files, new_files, modified_files,
-    network_analysis, captured_requests, honeytoken_hits,
+    network_analysis, captured_requests,
     strace_all_lines, behavioral_phases, behavior_score,
     static_results,
     behavioral_monitor=None,
@@ -728,12 +636,6 @@ def extract_dynamic_features(
     http_paths   = list(set(r.get("path","")       for r in captured_requests if r.get("path")))
     http_agents  = list(set(r.get("user_agent","") for r in captured_requests if r.get("user_agent")))
     has_exfil    = any(r.get("analysis",{}).get("large_exfil_attempt") for r in captured_requests)
-
-    triggered_types = []
-    for hit in honeytoken_hits:
-        for token_path, token_type in HONEYTOKEN_PROFILES.items():
-            if token_path in hit: triggered_types.append(token_type); break
-    honeytoken_types = "|".join(triggered_types) if triggered_types else "none"
 
     # Extract domains from fake DNS server captures
     dns_captured_domain = None
@@ -810,7 +712,6 @@ def extract_dynamic_features(
         "feat_has_persistence_phase":       str(bool(behavioral_phases.get("persistence"))),
         "feat_contacted_external_domain":   contacted_domain,
         "feat_sensitive_file_read":         str(sensitive_file_read),
-        "feat_honeytoken_triggered":        str(bool(honeytoken_hits)),
         "feat_spawned_shell":               str(spawned_shell),
         "feat_dns_query_to_external":       dns_external_domain,
         "feat_http_method":                 "|".join(http_methods) if http_methods else "none",
@@ -823,7 +724,6 @@ def extract_dynamic_features(
         "decoy_sensitive_files_accessed":   "|".join(sensitive_accessed) if sensitive_accessed else "none",
         "decoy_new_files_created":          new_files_value,
         "decoy_modified_files":             modified_files_value,
-        "decoy_honeytoken_types_triggered": honeytoken_types,
           # ── Proc monitor features — replaces Falco/eBPF ──
         "proc_privilege_escalation":    str(behavioral_monitor.get("proc_privilege_escalation",    False)),
         "proc_write_binary_dir":        str(behavioral_monitor.get("proc_write_binary_dir",        False)),
@@ -852,11 +752,8 @@ def extract_package_if_needed(path):
 
 file_path = extract_package_if_needed(original_input)
 
-# Snapshot BEFORE honeytokens
+# Snapshot
 snapshot_before = take_filesystem_snapshot(file_path)
-
-# Plant honeytokens AFTER snapshot
-setup_honeytokens(file_path)
 
 static_results   = {}
 package_metadata = analyze_package_metadata(file_path)
@@ -945,10 +842,6 @@ for target in targets:
 snapshot_after = take_filesystem_snapshot(file_path)
 new_files, modified_files = diff_filesystem_snapshots(snapshot_before, snapshot_after)
 
-# Honeytoken hits
-honeytoken_paths = [".env", ".aws/credentials", "config.json",
-                    ".ssh/id_rsa", "secrets.yaml", ".fake_db_secret"]
-honeytoken_hits  = [f for f in accessed_files if any(h in f for h in honeytoken_paths)]
 
 # Enrich network
 network_analysis  = enrich_network_data(ips, domains, captured_dns, captured_requests)
@@ -964,7 +857,6 @@ external_ips_info = network_analysis.get("external_ips", [])
 score, behavior_findings = calculate_score(
     strace_all_lines,
     external_ips_info=external_ips_info,
-    honeytoken_hits=honeytoken_hits,
     captured_requests=captured_requests,
 )
 
@@ -973,9 +865,6 @@ for fname, sa in static_results.items():
     if sa.get("has_obfuscation"):
         score += 5
         behavior_findings.append({"label":"obfuscated_code","tier":"high","weight":5,"file":fname})
-    if sa.get("dynamic_exec_calls"):
-        score += 3
-        behavior_findings.append({"label":"dynamic_exec_in_source","tier":"high","weight":3,"file":fname})
     if sa.get("reverse_shell_pattern"):
         score += 10
         behavior_findings.append({"label":"reverse_shell_in_source","tier":"critical","weight":10,"file":fname})
@@ -999,9 +888,6 @@ if score >= 20: verdict = "CRITICAL"
 # Behavioral phases
 behavioral_phases = build_behavioral_phases(timeline)
 
-# Process graph
-graph_data = build_process_graph(processes, accessed_files, network_analysis, honeytoken_hits)
-
 # Dynamic features
 # Wait for monitor thread
 monitor_thread.join(timeout=5)
@@ -1013,7 +899,6 @@ dynamic_features = extract_dynamic_features(
     modified_files=modified_files,
     network_analysis=network_analysis,
     captured_requests=captured_requests,
-    honeytoken_hits=honeytoken_hits,
     strace_all_lines=strace_all_lines,
     behavioral_phases=behavioral_phases,
     behavior_score=score,
@@ -1036,12 +921,10 @@ log = {
     "behavioral_phases": behavioral_phases,
     "static_analysis":   static_results,
     "package_metadata":  package_metadata,
-    "honeytoken_hits":   honeytoken_hits,
     "network_analysis":  network_analysis,
     "dns":               captured_dns,
     "http_requests":     captured_requests,
     "processes":         list(set(processes)),
-    "graph":             graph_data,
     "accessed_files":    list(set(accessed_files)),
     "decoded_payloads":  decoded_payloads,
     "memory_strings":    list(set(memory_strings))[:100],
