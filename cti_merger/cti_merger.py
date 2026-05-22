@@ -440,7 +440,6 @@ def extract_cti(ml_log, behavioral_log):
         accessed      = behavioral_log.get("accessed_files", [])
         sensitive_pats = ["/etc/passwd","/etc/shadow","/.ssh/","/.aws/","/.env","/.bashrc","/root/"]
         sensitive     = [f for f in accessed if any(p in f for p in sensitive_pats)]
-        honeytoken_hits = behavioral_log.get("honeytoken_hits", [])
         processes     = behavioral_log.get("processes", [])
         countries     = list(set(ip.get("country","") for ip in external_ips if ip.get("country")))
 
@@ -448,7 +447,6 @@ def extract_cti(ml_log, behavioral_log):
         row["sensitive_file_read"]       = str(bool(sensitive))
         row["dns_query_to_external"]     = real_domains[0] if real_domains else "none"
         row["http_method"]               = http_methods[0] if http_methods else "none"
-        row["honeytoken_triggered"]      = str(bool(honeytoken_hits))
         row["spawned_shell"]             = str(any(re.search(r'\b(bash|sh|dash)\b', p) for p in processes))
         row["contacted_country"]         = countries[0] if countries else "none"
 
