@@ -719,5 +719,146 @@
         ]
       }
     ]
+  },
+  {
+    "type": "bundle",
+    "id": "bundle--83b8dc44-80e7-4154-a923-3286537fea09",
+    "spec_version": "2.1",
+    "objects": [
+      {
+        "type": "identity",
+        "spec_version": "2.1",
+        "id": "identity--5c37e063-22b4-470a-a6dc-851bdeb8b2dd",
+        "created": "2026-05-22T00:15:44.000Z",
+        "modified": "2026-05-22T00:15:44.000Z",
+        "name": "SSC Honeypot Collector",
+        "identity_class": "system",
+        "description": "Honeytoken collector deployed in CI/CD workflow.",
+        "labels": [
+          "honeytoken",
+          "threat-intelligence"
+        ]
+      },
+      {
+        "type": "ipv4-addr",
+        "spec_version": "2.1",
+        "id": "ipv4-addr--04bcd219-f642-4f2a-9237-4a05d627e658",
+        "value": "2.90.66.105"
+      },
+      {
+        "type": "network-traffic",
+        "spec_version": "2.1",
+        "id": "network-traffic--72b4cfed-11c3-46d2-afad-35d969bae8f3",
+        "src_ref": "ipv4-addr--04bcd219-f642-4f2a-9237-4a05d627e658",
+        "protocols": [
+          "http"
+        ],
+        "start": "2026-05-22T00:15:44.000Z",
+        "extensions": {
+          "http-request-ext": {
+            "request_method": "GET",
+            "request_value": "/s3/prod-build-artifacts-2026",
+            "request_header": {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+            }
+          }
+        },
+        "x_event_type": "path_trigger",
+        "x_token_profile": "s3",
+        "x_privilege_level": 3,
+        "x_automation_score": 0,
+        "x_burst_flag": false,
+        "x_request_count": 1,
+        "x_hour_of_day": 0,
+        "x_day_of_week": "Friday"
+      },
+      {
+        "type": "indicator",
+        "spec_version": "2.1",
+        "id": "indicator--123f7d2c-e82c-417e-8a7c-88ca79324042",
+        "created": "2026-05-22T00:15:44.000Z",
+        "modified": "2026-05-22T00:15:44.000Z",
+        "created_by_ref": "identity--5c37e063-22b4-470a-a6dc-851bdeb8b2dd",
+        "name": "Honeytoken hit: /s3/prod-build-artifacts-2026",
+        "description": "IP 2.90.66.105 hit '/s3/prod-build-artifacts-2026' via GET from None. Profile: s3, privilege 3.",
+        "indicator_types": [
+          "malicious-activity",
+          "anomalous-activity"
+        ],
+        "pattern": "[ipv4-addr:value = '2.90.66.105']",
+        "pattern_type": "stix",
+        "valid_from": "2026-05-22T00:15:44.000Z",
+        "labels": [
+          "honeytoken-hit",
+          "cloud-storage-probe"
+        ],
+        "confidence": 55
+      },
+      {
+        "type": "observed-data",
+        "spec_version": "2.1",
+        "id": "observed-data--6ed4bedb-ebae-4c01-9233-e5c0ad345d88",
+        "created": "2026-05-22T00:15:44.000Z",
+        "modified": "2026-05-22T00:15:44.000Z",
+        "created_by_ref": "identity--5c37e063-22b4-470a-a6dc-851bdeb8b2dd",
+        "first_observed": "2026-05-22T00:15:44.000Z",
+        "last_observed": "2026-05-22T00:15:44.000Z",
+        "number_observed": 1,
+        "object_refs": [
+          "ipv4-addr--04bcd219-f642-4f2a-9237-4a05d627e658",
+          "network-traffic--72b4cfed-11c3-46d2-afad-35d969bae8f3"
+        ],
+        "labels": [
+          "honeytoken-hit",
+          "cloud-storage-probe"
+        ]
+      },
+      {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--80781ffd-b5ad-4d7a-8045-4057be419fa2",
+        "created": "2026-05-22T00:15:44.000Z",
+        "modified": "2026-05-22T00:15:44.000Z",
+        "relationship_type": "indicates",
+        "source_ref": "indicator--123f7d2c-e82c-417e-8a7c-88ca79324042",
+        "target_ref": "ipv4-addr--04bcd219-f642-4f2a-9237-4a05d627e658"
+      },
+      {
+        "type": "note",
+        "spec_version": "2.1",
+        "id": "note--e741fa41-b434-458c-b186-6c501a0c4efe",
+        "created": "2026-05-22T00:15:44.000Z",
+        "modified": "2026-05-22T00:15:44.000Z",
+        "created_by_ref": "identity--5c37e063-22b4-470a-a6dc-851bdeb8b2dd",
+        "abstract": "Intel from AbuseIPDB for 2.90.66.105",
+        "content": "{\n  \"ipAddress\": \"2.90.66.105\",\n  \"isPublic\": true,\n  \"ipVersion\": 4,\n  \"isWhitelisted\": false,\n  \"abuseConfidenceScore\": 0,\n  \"countryCode\": \"SA\",\n  \"usageType\": \"Mobile ISP\",\n  \"isp\": \"Saudi Telecom Company JSC\",\n  \"domain\": \"stc.com.sa\",\n  \"isTor\": false,\n  \"countryName\": \"Saudi Arabia\",\n  \"totalReports\": 0,\n  \"numDistinctUsers\": 0\n}",
+        "object_refs": [
+          "ipv4-addr--04bcd219-f642-4f2a-9237-4a05d627e658",
+          "indicator--123f7d2c-e82c-417e-8a7c-88ca79324042"
+        ],
+        "labels": [
+          "abuseipdb",
+          "raw-intel"
+        ]
+      },
+      {
+        "type": "note",
+        "spec_version": "2.1",
+        "id": "note--7051ca14-ac24-4f3d-a68d-9eda9fd56c86",
+        "created": "2026-05-22T00:15:44.000Z",
+        "modified": "2026-05-22T00:15:44.000Z",
+        "created_by_ref": "identity--5c37e063-22b4-470a-a6dc-851bdeb8b2dd",
+        "abstract": "Intel from VirusTotal for 2.90.66.105",
+        "content": "{\n  \"as_owner\": \"Saudi Telecom Company JSC\",\n  \"continent\": \"AS\",\n  \"total_votes\": {\n    \"harmless\": 0,\n    \"malicious\": 0\n  },\n  \"whois_date\": 1712916433,\n  \"last_analysis_stats\": {\n    \"malicious\": 0,\n    \"suspicious\": 0,\n    \"undetected\": 91,\n    \"harmless\": 0,\n    \"timeout\": 0\n  },\n  \"last_modification_date\": 1712916437,\n  \"asn\": 39891,\n  \"last_analysis_date\": 1712916250,\n  \"regional_internet_registry\": \"RIPE NCC\",\n  \"reputation\": 0,\n  \"last_analysis_results\": {\n    \"Acronis\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Acronis\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"0xSI_f33d\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"0xSI_f33d\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Abusix\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Abusix\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"ADMINUSLabs\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"ADMINUSLabs\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Axur\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Axur\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"ChainPatrol\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"ChainPatrol\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Criminal IP\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Criminal IP\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"AILabs (MONITORAPP)\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"AILabs (MONITORAPP)\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"AlienVault\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"AlienVault\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"alphaMountain.ai\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"alphaMountain.ai\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"AlphaSOC\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"AlphaSOC\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Antiy-AVL\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Antiy-AVL\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"ArcSight Threat Intelligence\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"ArcSight Threat Intelligence\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"AutoShun\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"AutoShun\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Bfore.Ai PreCrime\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Bfore.Ai PreCrime\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"BitDefender\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"BitDefender\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Bkav\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Bkav\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Blueliv\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Blueliv\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Certego\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Certego\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Chong Lua Dao\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Chong Lua Dao\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"CINS Army\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"CINS Army\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Cluster25\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Cluster25\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"CRDF\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"CRDF\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"CSIS Security Group\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"CSIS Security Group\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Snort IP sample list\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Snort IP sample list\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"CMC Threat Intelligence\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"CMC Threat Intelligence\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"CTX AI\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"CTX AI\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Cyan\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Cyan\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Cyble\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Cyble\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"CyRadar\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"CyRadar\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"DNS8\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"DNS8\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Dr.Web\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Dr.Web\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Ermes\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Ermes\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"ESET\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"ESET\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"ESTsecurity\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"ESTsecurity\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"EmergingThreats\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"EmergingThreats\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Emsisoft\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Emsisoft\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Forcepoint ThreatSeeker\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Forcepoint ThreatSeeker\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Fortinet\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Fortinet\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"G-Data\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"G-Data\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"GCP Abuse Intelligence\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"GCP Abuse Intelligence\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Google Safebrowsing\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Google Safebrowsing\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"GreenSnow\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"GreenSnow\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"GreyNoise\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"GreyNoise\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Gridinsoft\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Gridinsoft\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Guardpot\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Guardpot\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Heimdal Security\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Heimdal Security\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Hunt.io Intelligence\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Hunt.io Intelligence\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"IPsum\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"IPsum\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Juniper Networks\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Juniper Networks\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Kaspersky\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Kaspersky\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"LevelBlue\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"LevelBlue\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Lionic\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Lionic\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Lumu\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Lumu\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"MalwarePatrol\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"MalwarePatrol\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"MalwareURL\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"MalwareURL\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Malwared\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Malwared\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Mimecast\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Mimecast\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Netcraft\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Netcraft\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"OpenPhish\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"OpenPhish\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Phishing Database\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Phishing Database\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"PhishFort\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"PhishFort\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"PhishLabs\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"PhishLabs\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Phishtank\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Phishtank\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"PREBYTES\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"PREBYTES\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"PrecisionSec\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"PrecisionSec\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Quick Heal\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Quick Heal\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Quttera\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Quttera\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"SafeToOpen\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"SafeToOpen\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Sansec eComscan\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Sansec eComscan\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Scantitan\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Scantitan\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"SCUMWARE.org\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"SCUMWARE.org\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Seclookup\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Seclookup\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"SecureBrain\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"SecureBrain\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"SOCRadar\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"SOCRadar\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Sophos\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Sophos\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"StopForumSpam\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"StopForumSpam\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Sucuri SiteCheck\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Sucuri SiteCheck\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"ThreatHive\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"ThreatHive\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"URLhaus\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"URLhaus\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"URLQuery\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"URLQuery\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Viettel Threat Intelligence\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Viettel Threat Intelligence\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"VIPRE\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"VIPRE\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"VX Vault\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"VX Vault\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"ViriBack\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"ViriBack\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Webroot\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Webroot\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Yandex Safebrowsing\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Yandex Safebrowsing\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"ZeroCERT\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"ZeroCERT\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"desenmascara.me\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"desenmascara.me\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"Xcitium Verdict Cloud\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"Xcitium Verdict Cloud\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    },\n    \"ZeroFox\": {\n      \"method\": \"blacklist\",\n      \"engine_name\": \"ZeroFox\",\n      \"category\": \"undetected\",\n      \"result\": \"unrated\"\n    }\n  },\n  \"country\": \"SA\",\n  \"network\": \"2.90.64.0/18\"\n}",
+        "object_refs": [
+          "ipv4-addr--04bcd219-f642-4f2a-9237-4a05d627e658",
+          "indicator--123f7d2c-e82c-417e-8a7c-88ca79324042"
+        ],
+        "labels": [
+          "virustotal",
+          "raw-intel"
+        ]
+      }
+    ]
   }
 ]
