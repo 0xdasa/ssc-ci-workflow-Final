@@ -479,7 +479,6 @@ def extract_public_runtime_values(raw_runtime_doc):
     timeline = raw_runtime_doc.get("timeline") or []
     accessed_files = safe_list(raw_runtime_doc.get("accessed_files"), 30)
     processes = safe_list(raw_runtime_doc.get("processes"), 20)
-    honeytoken_hits = safe_list(raw_runtime_doc.get("honeytoken_hits"), 20)
     http_requests = raw_runtime_doc.get("http_requests") or []
     dns = raw_runtime_doc.get("dns") or []
     network = raw_runtime_doc.get("network_analysis") or {}
@@ -505,7 +504,6 @@ def extract_public_runtime_values(raw_runtime_doc):
     public_runtime_values = {
         "accessed_files": accessed_files[:20],
         "processes": processes[:20],
-        "honeytoken_paths": honeytoken_hits,
         "ssh_paths_accessed": ssh_paths,
         "secret_paths_accessed": env_paths,
         "system_sensitive_paths_accessed": passwd_paths,
