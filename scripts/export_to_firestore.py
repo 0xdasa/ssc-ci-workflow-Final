@@ -325,7 +325,6 @@ def extract_top_shap(raw_ml_doc, limit=10):
     """
     raw_ml_doc = raw_ml_doc or {}
 
-    # لو الداتا جاية داخل wrapper مثل {"data": {...}}
     if isinstance(raw_ml_doc, dict) and isinstance(raw_ml_doc.get("data"), dict):
         raw_ml_doc = raw_ml_doc.get("data") or {}
 
@@ -353,8 +352,7 @@ def extract_top_shap(raw_ml_doc, limit=10):
         if name is None or value is None:
             return
 
-        # مهم: نخزنها كـ dict وليس [name, value]
-        # عشان Firestore ما يحولها إلى nested array
+
         out.append({
             "feature": str(name),
             "value": value
@@ -369,7 +367,6 @@ def extract_top_shap(raw_ml_doc, limit=10):
         if isinstance(item, list):
             for x in item:
                 if isinstance(x, dict):
-                    # دعم الشكل اللي Firestore ممكن يكون حوله من nested array
                     if "items" in x and isinstance(x.get("items"), list) and len(x.get("items")) >= 2:
                         add_item(out, x["items"][0], x["items"][1])
                         continue
@@ -592,8 +589,13 @@ def main():
     db = init_firestore()
 
     now = datetime.now(timezone.utc)
-    raw_expires = now + timedelta(days=30)
-    summary_expires = now + timedelta(days=180)
+# ECC 2:2024 control 2.12.3.5 requires cybersecurity event logs
+# to be retained for at least 12 months. 
+    CYBERSECURITY_EVENT_LOG_RETENTION_DAYS = 365
+    SUMMARY_RETENTION_DAYS = 365
+    
+    raw_expires = now + timedelta(days=CYBERSECURITY_EVENT_LOG_RETENTION_DAYS)
+    summary_expires = now + timedelta(days=SUMMARY_RETENTION_DAYS)
 
     run_id = f"{safe_id(package_file)}_{github_run_number or safe_id(github_run_id) or int(now.timestamp())}"
 
@@ -601,7 +603,6 @@ def main():
     runtime_log, runtime_source = find_runtime_log(package_file, github_run_number)
     ebpf_log, ebpf_source = find_ebpf_log(package_file, github_run_number)
 
-    # استخراج SHAP من ml_log مباشرة
     top_shap_values = extract_top_shap(ml_log)
 
     final_result = decide_result(ml_log, runtime_log, ebpf_log)
@@ -725,7 +726,6 @@ def main():
         "expires_at": raw_expires,
     }
 
-    # تطبيق التنظيف على جميع المستندات
     analysis_doc = sanitize_for_firestore(analysis_doc)
     raw_meta_doc = sanitize_for_firestore(raw_meta_doc)
     raw_ml_doc = sanitize_for_firestore(raw_ml_doc)
