@@ -233,8 +233,295 @@ function fmtTs(ts){ if(!ts)return'—'; try{ return new Date(ts).toLocaleString(
 function chipColor(label){ var l=(label||'').toLowerCase(); if(l.includes('malicious')||l.includes('tor')||l.includes('danger'))return'badge-red'; if(l.includes('vpn')||l.includes('scanner')||l.includes('bot')||l.includes('cloud'))return'badge-amber'; if(l.includes('honeytoken')||l.includes('intel')||l.includes('raw')||l.includes('geo'))return'badge-teal'; if(l.includes('actor')||l.includes('abuse')||l.includes('virus'))return'badge-purple'; if(l.includes('network')||l.includes('traffic'))return'badge-blue'; return'badge-gray'; }
 function scoreBadge(key,val){ var k=(key||'').toLowerCase(),n=Number(val); if((k.includes('score')||k.includes('confidence'))&&!isNaN(n)){ if(n>=80)return'badge-red'; if(n>=40)return'badge-amber'; return'badge-teal'; } if(k==='reputation'&&!isNaN(n)){return n<-5?'badge-red':n<0?'badge-amber':'badge-teal';} if((k==='istor'||k==='tor')&&val===true)return'badge-red'; if((k==='vpn'||k==='proxy')&&val===true)return'badge-amber'; if(k.includes('bot')&&val===true)return'badge-amber'; return null; }
 function renderKV(obj,depth){ if(!obj||typeof obj!=='object'||Array.isArray(obj))return''; depth=depth||0; var html=''; Object.entries(obj).forEach(function(entry){ var k=entry[0],v=entry[1]; if(v===null||v===undefined||v==='')return; html+='<div class="kv">'; html+='<div class="kv-k">'+esc(k)+'</div>'; if(Array.isArray(v)){ if(v.length===0){html+='<div class="kv-v" style="color:#64748b">[ ]</div>';}else if(typeof v[0]==='object'&&v[0]!==null){html+='<div class="kv-v" style="width:100%">'; v.forEach(function(item){html+='<div class="nested">'; if(typeof item==='object'){html+=renderKV(item,depth+1);}else{html+='<span class="badge badge-gray">'+esc(String(item))+'</span>';} html+='</div>'; }); html+='</div>';}else{html+='<div class="kv-v">'; v.forEach(function(l){html+='<span class="badge '+chipColor(String(l))+'">'+esc(String(l))+'</span> ';}); html+='</div>';} }else if(typeof v==='object'&&v!==null){html+='<div class="kv-v" style="width:100%"><div class="nested">'; if(depth<4){html+=renderKV(v,depth+1);}else{html+='<span style="font-family:monospace;font-size:11px;color:#64748b">'+esc(JSON.stringify(v))+'</span>';} html+='</div></div>';}else{ var badge=scoreBadge(k,v),str=esc(String(v)); if(badge){html+='<div class="kv-v"><span class="badge '+badge+'">'+str+'</span></div>';}else if(typeof v==='boolean'){html+='<div class="kv-v"><span class="badge '+(v?'badge-teal':'badge-gray')+'">'+str+'</span></div>';}else{html+='<div class="kv-v">'+str+'</div>';} } html+='</div>'; }); return html; }
-function renderBundle(bundle,idx){ var objs=bundle.objects||[]; var ip=objs.find(function(o){return o.type==='ipv4-addr';}); var net=objs.find(function(o){return o.type==='network-traffic';}); var indicator=objs.find(function(o){return o.type==='indicator';}); var ta=objs.find(function(o){return o.type==='threat-actor';}); var observed=objs.find(function(o){return o.type==='observed-data';}); var notes=objs.filter(function(o){return o.type==='note';}); var rels=objs.filter(function(o){return o.type==='relationship';}); var ipVal=(ip&&ip.value)?ip.value:'?'; var ep=(net&&net.extensions&&net.extensions['http-request-ext'])?net.extensions['http-request-ext'].request_value:(indicator?indicator.name:'?'); var ts=indicator?indicator.created:''; var labels=indicator?(indicator.labels||[]):[]; var conf=indicator?(indicator.confidence||0):0; var isHigh=conf>=80; var dotColor=isHigh?'#f87171':labels.includes('tor-exit-node')?'#fbbf24':'#34d399'; var cardId='bc_'+idx; var html='<div class="item">'; html+='<div class="bundle-header" onclick="toggleBundle(\''+cardId+'\')">'; html+='<span style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';display:inline-block;flex-shrink:0"></span>'; html+='<span style="font-weight:bold;color:#60a5fa">'+esc(ipVal)+'</span>'; html+='<span style="color:#64748b">→</span>'; html+='<span style="color:#93c5fd;font-size:12px">'+esc(ep||'')+'</span>'; html+='<span style="flex:1"></span>'; labels.slice(0,3).forEach(function(l){html+='<span class="badge '+chipColor(l)+'">'+esc(l)+'</span>';}); if(isHigh)html+='<span class="badge badge-red">HIGH</span>'; html+='<span style="color:#64748b;font-size:11px;white-space:nowrap">'+esc(fmtTs(ts))+'</span>'; html+='<span class="arrow" id="arr_'+cardId+'">▶</span>'; html+='</div>'; html+='<div class="bundle-body" id="'+cardId+'">'; if(ip){html+='<div class="section-title">IP Address</div>'; var ipFields={value:ip.value}; Object.entries(ip).forEach(function(e){if(e[0].startsWith('x_'))ipFields[e[0].replace('x_','')]=e[1];}); html+=renderKV(ipFields,0);} if(net){html+='<div class="divider"></div><div class="section-title">HTTP Request</div>'; var ext=(net.extensions&&net.extensions['http-request-ext'])?net.extensions['http-request-ext']:{}; var reqFields={}; if(ext.request_method)reqFields['method']=ext.request_method; if(ext.request_value)reqFields['endpoint']=ext.request_value; var ua=ext.request_header&&ext.request_header['User-Agent']; if(ua)reqFields['user-agent']=ua; Object.entries(net).forEach(function(e){if(e[0].startsWith('x_')&&e[1]!==null&&e[1]!==undefined){reqFields[e[0].replace('x_','')]=e[1];}}); html+=renderKV(reqFields,0);} if(indicator){html+='<div class="divider"></div><div class="section-title">Indicator</div>'; var skipInd=['type','spec_version','id','created_by_ref','object_refs','name']; var indFields={}; Object.entries(indicator).forEach(function(e){if(skipInd.indexOf(e[0])===-1)indFields[e[0]]=e[1];}); html+=renderKV(indFields,0);} if(observed){html+='<div class="divider"></div><div class="section-title">Observed Data</div>'; var skipObs=['type','spec_version','id','created_by_ref','object_refs']; var obsFields={}; Object.entries(observed).forEach(function(e){if(skipObs.indexOf(e[0])===-1)obsFields[e[0]]=e[1];}); html+=renderKV(obsFields,0);} if(ta){html+='<div class="divider"></div><div class="section-title">Threat Actor</div>'; var skipTa=['type','spec_version','id','created_by_ref']; var taFields={}; Object.entries(ta).forEach(function(e){if(skipTa.indexOf(e[0])===-1)taFields[e[0]]=e[1];}); html+=renderKV(taFields,0);} if(notes.length>0){html+='<div class="divider"></div><div class="section-title">Intel Sources ('+notes.length+')</div>'; notes.forEach(function(note){ var src=note.abstract||(note.labels&&note.labels[0])||'source'; html+='<div class="intel-block">'; html+='<div class="intel-title">'+esc(src)+'</div>'; var parsed=null; try{parsed=JSON.parse(note.content);}catch(e){} if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed)){html+=renderKV(parsed,0);}else if(note.content){html+='<div class="mono">'+esc(note.content)+'</div>';} var extraSkip=['type','spec_version','id','created','modified','created_by_ref','object_refs','abstract','content','labels']; Object.entries(note).forEach(function(e){if(extraSkip.indexOf(e[0])===-1){html+='<div class="kv"><div class="kv-k">'+esc(e[0])+'</div><div class="kv-v">'+esc(String(e[1]))+'</div></div>';}}); html+='</div>'; });} if(rels.length>0){html+='<div class="divider"></div><div class="section-title">Relationships</div>'; rels.forEach(function(rel){var src=(rel.source_ref||'').split('--')[0],tgt=(rel.target_ref||'').split('--')[0]; html+='<div class="kv"><div class="kv-k">'+esc(rel.relationship_type||'')+'</div><div class="kv-v" style="font-family:monospace;font-size:11px">'+esc(src)+' → '+esc(tgt)+'</div></div>';});} html+='</div></div>'; return html; }
-function toggleBundle(id){ var body=document.getElementById(id),arr=document.getElementById('arr_'+id),open=body.classList.toggle('open'); arr.classList.toggle('open',open); }
+function renderBundle(bundle, idx) {
+    var objs = bundle.objects || [];
+    var ip = objs.find(function(o) { return o.type === 'ipv4-addr'; });
+    var net = objs.find(function(o) { return o.type === 'network-traffic'; });
+    var indicator = objs.find(function(o) { return o.type === 'indicator'; });
+    var ta = objs.find(function(o) { return o.type === 'threat-actor'; });
+    var observed = objs.find(function(o) { return o.type === 'observed-data'; });
+    var notes = objs.filter(function(o) { return o.type === 'note'; });
+    var rels = objs.filter(function(o) { return o.type === 'relationship'; });
+
+    var ipVal = (ip && ip.value) ? ip.value : '?';
+    var ext = (net && net.extensions && net.extensions['http-request-ext']) ? net.extensions['http-request-ext'] : {};
+    var ep = ext.request_value || (indicator ? indicator.name : '?');
+    var ts = indicator ? indicator.created : '';
+    var labels = indicator ? (indicator.labels || []) : [];
+    var conf = indicator ? (indicator.confidence || 0) : 0;
+    var isHigh = conf >= 80;
+    var dotColor = isHigh ? '#f87171' : labels.includes('tor-exit-node') ? '#fbbf24' : '#34d399';
+    var cardId = 'bc_' + idx;
+    var tabId = 'bt_' + idx;
+
+    // parse intel notes
+    var geoData = {}, abuseData = {}, shodanData = {}, vtData = {};
+    notes.forEach(function(note) {
+        var src = (note.abstract || '').toLowerCase();
+        var parsed = null;
+        try { parsed = JSON.parse(note.content); } catch(e) {}
+        if (!parsed) return;
+        if (src.includes('geo')) geoData = parsed;
+        else if (src.includes('abuse')) abuseData = parsed;
+        else if (src.includes('shodan')) shodanData = parsed;
+        else if (src.includes('virus') || src.includes('vt')) vtData = parsed;
+    });
+
+    var abuseScore = abuseData.abuseConfidenceScore || 0;
+    var vtStats = vtData.last_analysis_stats || {};
+    var vtMalicious = vtStats.malicious || 0;
+    var vtSuspicious = vtStats.suspicious || 0;
+    var vtHarmless = vtStats.harmless || 0;
+    var vtUndetected = vtStats.undetected || 0;
+    var vtTotal = vtMalicious + vtSuspicious + vtHarmless + vtUndetected;
+    var vtPct = vtTotal > 0 ? Math.round((vtMalicious / vtTotal) * 100) : 0;
+    var vtReputation = vtData.reputation || 0;
+    var abuseReports = abuseData.totalReports || 0;
+    var abuseUsers = abuseData.numDistinctUsers || 0;
+    var shodanPorts = (shodanData.ports || []);
+    var shodanOrg = shodanData.org || '';
+    var shodanTags = shodanData.tags || [];
+    var shodanData2 = shodanData.data || [];
+    var crowdContext = vtData.crowdsourced_context || [];
+    var vtEngines = vtData.last_analysis_results || {};
+    var vtMaliciousEngines = Object.entries(vtEngines).filter(function(e) { return e[1].category === 'malicious' || e[1].category === 'suspicious'; });
+
+    // abuse reports list
+    var abuseReportsList = abuseData.reports || [];
+
+    function statBox(label, val, color) {
+        return '<div style="background:#07101f;border-radius:6px;padding:8px 10px;flex:1;min-width:80px">'
+            + '<div style="color:#64748b;font-size:10px;margin-bottom:3px">' + esc(label) + '</div>'
+            + '<div style="font-size:16px;font-weight:bold;font-family:monospace;color:' + color + '">' + esc(String(val)) + '</div>'
+            + '</div>';
+    }
+
+    function kvRow(k, v) {
+        return '<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #1e293b;font-size:12px">'
+            + '<div style="color:#64748b;min-width:130px;flex-shrink:0">' + esc(k) + '</div>'
+            + '<div style="color:#e2e8f0;word-break:break-all;flex:1;font-family:monospace">' + esc(String(v)) + '</div>'
+            + '</div>';
+    }
+
+    function tabBtn(tabKey, label, active) {
+        return '<button onclick="switchBundleTab(\'' + cardId + '\',\'' + tabKey + '\')" '
+            + 'id="' + cardId + '_tab_' + tabKey + '" '
+            + 'style="font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid #2b3548;'
+            + 'background:' + (active ? '#042c53' : '#0b1220') + ';'
+            + 'color:' + (active ? '#60a5fa' : '#94a3b8') + ';'
+            + 'cursor:pointer;font-family:Arial;'
+            + (active ? 'font-weight:bold;border-color:#185FA5;' : '') + '">'
+            + esc(label) + '</button>';
+    }
+
+    function tabPanel(tabKey, content, active) {
+        return '<div id="' + cardId + '_panel_' + tabKey + '" style="display:' + (active ? 'block' : 'none') + '">'
+            + content + '</div>';
+    }
+
+    // ── TAB: HTTP REQUEST
+    var httpContent = '<div style="margin-top:8px">'
+        + kvRow('Method', ext.request_method || 'GET')
+        + kvRow('Endpoint', ep)
+        + kvRow('Profile', (net && net.x_token_profile ? net.x_token_profile : '?') + ' · privilege ' + (net && net.x_privilege_level != null ? net.x_privilege_level : '?'))
+        + kvRow('Event type', (net && net.x_event_type) || 'path_trigger')
+        + kvRow('User agent', (ext.request_header && ext.request_header['User-Agent']) || '—')
+        + kvRow('Automation flag', (net && net.x_automation_score > 0) ? 'Yes (' + net.x_automation_score + ')' : 'No')
+        + kvRow('Burst flag', (net && net.x_burst_flag) ? 'Yes' : 'No')
+        + kvRow('Request count', (net && net.x_request_count) || 1)
+        + kvRow('Hour / day', (net && net.x_hour_of_day != null ? net.x_hour_of_day + ':00' : '—') + ' · ' + (net && net.x_day_of_week || '—'))
+        + '</div>';
+
+    // ── TAB: GEO
+    var geoContent = '<div style="margin-top:8px">';
+    if (Object.keys(geoData).length) {
+        ['query','country','countryCode','regionName','city','zip','isp','org','as','timezone','lat','lon'].forEach(function(k) {
+            if (geoData[k] != null && geoData[k] !== '') geoContent += kvRow(k, geoData[k]);
+        });
+    } else {
+        geoContent += kvRow('Country', (ip && ip.x_country) || '—');
+        geoContent += kvRow('City', (ip && ip.x_city) || '—');
+        geoContent += kvRow('ISP', (ip && ip.x_isp) || '—');
+        geoContent += kvRow('ASN', (ip && ip.x_asn) || '—');
+    }
+    geoContent += '</div>';
+
+    // ── TAB: ABUSEIPDB
+    var abuseContent = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'
+        + statBox('Confidence', abuseScore + '/100', abuseScore >= 80 ? '#f87171' : abuseScore >= 40 ? '#fbbf24' : '#34d399')
+        + statBox('Total reports', abuseReports.toLocaleString(), '#fbbf24')
+        + statBox('Distinct users', abuseUsers, '#60a5fa')
+        + statBox('TOR', abuseData.isTor ? 'Yes' : 'No', abuseData.isTor ? '#f87171' : '#34d399')
+        + '</div>';
+    abuseContent += '<div style="margin-bottom:10px">'
+        + kvRow('ISP', abuseData.isp || '—')
+        + kvRow('Domain', abuseData.domain || '—')
+        + kvRow('Hostname', (abuseData.hostnames && abuseData.hostnames[0]) || '—')
+        + kvRow('Usage type', abuseData.usageType || '—')
+        + kvRow('Last reported', abuseData.lastReportedAt || '—')
+        + kvRow('Whitelisted', abuseData.isWhitelisted ? 'Yes' : 'No')
+        + '</div>';
+    if (abuseReportsList.length) {
+        abuseContent += '<div style="color:#93c5fd;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Recent reports (' + abuseReportsList.length + ')</div>';
+        abuseReportsList.slice(0, 5).forEach(function(r) {
+            abuseContent += '<div style="background:#07101f;border-radius:6px;padding:8px 10px;margin-bottom:6px">'
+                + '<div style="display:flex;gap:8px;align-items:center;margin-bottom:3px;flex-wrap:wrap">'
+                + '<span class="badge badge-gray">' + esc(r.reporterCountryCode || '?') + '</span>'
+                + '<span style="font-size:11px;color:#64748b">' + esc((r.reportedAt || '').slice(0, 16).replace('T', ' ')) + '</span>'
+                + '</div>'
+                + '<div style="font-size:11px;color:#94a3b8;line-height:1.5">' + esc((r.comment || '').slice(0, 120)) + '</div>'
+                + '</div>';
+        });
+    }
+
+    // ── TAB: SHODAN
+    var shodanContent = '<div style="margin-bottom:12px">'
+        + kvRow('Org', shodanOrg || shodanData.isp || '—')
+        + kvRow('ASN', shodanData.asn || '—')
+        + kvRow('OS', shodanData.os || '—')
+        + kvRow('Last updated', (shodanData.last_update || '').slice(0, 16).replace('T', ' ') || '—')
+        + kvRow('Tags', shodanTags.length ? shodanTags.join(', ') : '—')
+        + kvRow('Hostnames', (shodanData.hostnames || []).slice(0, 3).join(', ') || '—')
+        + '</div>';
+    if (shodanPorts.length) {
+        shodanContent += '<div style="color:#93c5fd;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Open ports</div>';
+        shodanContent += '<div style="margin-bottom:12px">';
+        shodanPorts.forEach(function(p) {
+            shodanContent += '<span style="display:inline-block;background:#07101f;border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;margin:2px;color:#60a5fa">' + esc(String(p)) + '</span>';
+        });
+        shodanContent += '</div>';
+    }
+    if (shodanData2.length) {
+        shodanContent += '<div style="color:#93c5fd;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Service details</div>';
+        shodanData2.slice(0, 3).forEach(function(s) {
+            shodanContent += '<div style="background:#07101f;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:11px">'
+                + '<div style="color:#60a5fa;margin-bottom:4px">Port ' + esc(String(s.port || '?')) + ' / ' + esc(s.transport || 'tcp') + (s.product ? ' — ' + esc(s.product) : '') + '</div>'
+                + (s.version ? '<div style="color:#94a3b8">Version: ' + esc(s.version) + '</div>' : '')
+                + (s.org ? '<div style="color:#64748b">Org: ' + esc(s.org) + '</div>' : '')
+                + '</div>';
+        });
+    }
+
+    // ── TAB: VIRUSTOTAL
+    var vtContent = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+        + statBox('Malicious', vtMalicious, '#f87171')
+        + statBox('Suspicious', vtSuspicious, '#fbbf24')
+        + statBox('Harmless', vtHarmless, '#34d399')
+        + statBox('Undetected', vtUndetected, '#64748b')
+        + '</div>';
+    vtContent += '<div style="margin-bottom:10px">'
+        + '<div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-bottom:4px"><span>Detection rate</span><span style="color:' + (vtPct >= 10 ? '#f87171' : '#34d399') + ';font-weight:bold">' + vtPct + '%</span></div>'
+        + '<div style="height:8px;background:#07101f;border-radius:4px;overflow:hidden"><div style="height:100%;width:' + vtPct + '%;background:#f87171;border-radius:4px"></div></div>'
+        + '</div>';
+    vtContent += '<div style="margin-bottom:12px">'
+        + kvRow('Reputation', vtReputation)
+        + kvRow('ASN owner', vtData.as_owner || '—')
+        + kvRow('Network', vtData.network || '—')
+        + kvRow('Country', vtData.country || '—')
+        + '</div>';
+    if (crowdContext.length) {
+        vtContent += '<div style="background:#1a0a0a;border:1px solid #501313;border-radius:6px;padding:10px 12px;margin-bottom:12px">'
+            + '<div style="color:#f87171;font-size:11px;font-weight:bold;margin-bottom:4px">Crowdsourced threat context</div>'
+            + '<div style="font-size:11px;color:#fca5a5;line-height:1.6">' + esc((crowdContext[0] && crowdContext[0].details || '').slice(0, 300)) + '</div>'
+            + '</div>';
+    }
+    if (vtMaliciousEngines.length) {
+        vtContent += '<div style="color:#93c5fd;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Flagged engines (' + vtMaliciousEngines.length + ')</div>';
+        vtContent += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+        vtMaliciousEngines.forEach(function(e) {
+            var isMal = e[1].category === 'malicious';
+            vtContent += '<div style="background:#07101f;border-radius:6px;padding:6px 8px;font-size:11px;min-width:110px">'
+                + '<div style="color:#64748b;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(e[0]) + '</div>'
+                + '<div style="color:' + (isMal ? '#f87171' : '#fbbf24') + ';font-weight:bold">' + esc(e[1].result || e[1].category) + '</div>'
+                + '</div>';
+        });
+        vtContent += '</div>';
+    }
+
+    // ── TAB: THREAT ACTOR
+    var actorContent = '<div style="margin-top:8px">';
+    if (ta) {
+        actorContent += kvRow('Name', ta.name || '—');
+        actorContent += kvRow('Description', ta.description || '—');
+        actorContent += kvRow('Type', (ta.threat_actor_types || []).join(', ') || '—');
+        actorContent += kvRow('Sophistication', ta.sophistication || '—');
+        actorContent += kvRow('Resource level', ta.resource_level || '—');
+        (ta.labels || []).forEach(function(l) {
+            actorContent += '<span class="badge ' + chipColor(l) + '">' + esc(l) + '</span> ';
+        });
+    } else {
+        actorContent += '<div style="color:#64748b;font-size:12px">No threat actor (confidence below threshold)</div>';
+    }
+    actorContent += '</div>';
+
+    // ── ASSEMBLE
+    var html = '<div class="item" style="contain:layout">';
+
+    // header row
+    html += '<div class="bundle-header" onclick="toggleBundle(\'' + cardId + '\')">';
+    html += '<span style="width:8px;height:8px;border-radius:50%;background:' + dotColor + ';display:inline-block;flex-shrink:0"></span>';
+    html += '<span style="font-weight:bold;color:#60a5fa">' + esc(ipVal) + '</span>';
+    html += '<span style="color:#64748b">→</span>';
+    html += '<span style="color:#93c5fd;font-size:12px">' + esc(ep || '') + '</span>';
+    html += '<span style="flex:1"></span>';
+    labels.slice(0, 3).forEach(function(l) { html += '<span class="badge ' + chipColor(l) + '">' + esc(l) + '</span>'; });
+    if (isHigh) html += '<span class="badge badge-red">HIGH</span>';
+    html += '<span style="color:#64748b;font-size:11px;white-space:nowrap">' + esc(fmtTs(ts)) + '</span>';
+    html += '<span class="arrow" id="arr_' + cardId + '">▶</span>';
+    html += '</div>';
+
+    // summary stats bar (always visible when open)
+    html += '<div class="bundle-body" id="' + cardId + '">';
+
+    // quick stats
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding-top:4px">'
+        + statBox('Abuse score', abuseScore + '/100', abuseScore >= 80 ? '#f87171' : abuseScore >= 40 ? '#fbbf24' : '#34d399')
+        + statBox('VT malicious', vtMalicious + ' engines', vtMalicious > 0 ? '#f87171' : '#34d399')
+        + statBox('Reports', abuseReports.toLocaleString(), '#fbbf24')
+        + statBox('VT reputation', vtReputation, vtReputation < 0 ? '#f87171' : '#34d399')
+        + '</div>';
+
+    // tab bar
+    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'
+        + tabBtn('http', 'HTTP Request', true)
+        + tabBtn('geo', 'GeoIP', false)
+        + tabBtn('abuse', 'AbuseIPDB', false)
+        + tabBtn('shodan', 'Shodan', false)
+        + tabBtn('vt', 'VirusTotal', false)
+        + tabBtn('actor', 'Threat Actor', false)
+        + '</div>';
+
+    // tab panels
+    html += tabPanel('http', httpContent, true);
+    html += tabPanel('geo', geoContent, false);
+    html += tabPanel('abuse', abuseContent, false);
+    html += tabPanel('shodan', shodanContent, false);
+    html += tabPanel('vt', vtContent, false);
+    html += tabPanel('actor', actorContent, false);
+
+    html += '</div></div>';
+    return html;
+}
+
+function switchBundleTab(cardId, tabKey) {
+    ['http','geo','abuse','shodan','vt','actor'].forEach(function(k) {
+        var panel = document.getElementById(cardId + '_panel_' + k);
+        var btn   = document.getElementById(cardId + '_tab_' + k);
+        if (panel) panel.style.display = k === tabKey ? 'block' : 'none';
+        if (btn) {
+            btn.style.background     = k === tabKey ? '#042c53' : '#0b1220';
+            btn.style.color          = k === tabKey ? '#60a5fa' : '#94a3b8';
+            btn.style.borderColor    = k === tabKey ? '#185FA5' : '#2b3548';
+            btn.style.fontWeight     = k === tabKey ? 'bold'    : 'normal';
+        }
+    });
+}
+function toggleBundle(id) {
+    var body = document.getElementById(id);
+    var arr  = document.getElementById('arr_' + id);
+    var open = body.classList.toggle('open');
+    arr.classList.toggle('open', open);
+}
 function matchesFilter(bundle,f){ if(f==='all')return true; var objs=bundle.objects||[]; var indicator=objs.find(function(o){return o.type==='indicator';}); var net=objs.find(function(o){return o.type==='network-traffic';}); var labels=indicator?(indicator.labels||[]):[]; var conf=indicator?(indicator.confidence||0):0; if(f==='high')return conf>=80; if(f==='tor')return labels.includes('tor-exit-node'); if(f==='vpn')return labels.includes('vpn'); if(f==='scanner')return labels.includes('automated-scanner'); if(f==='s3')return labels.includes('cloud-storage-probe'); if(f==='config')return labels.includes('config-exposure'); if(f==='cred')return net&&net.x_event_type==='credential_misuse'; return true; }
 function renderFilterBar(){ document.getElementById('filterBar').innerHTML=FILTERS.map(function(f){return'<button class="fbtn'+(f.k===activeFilter?' active':'')+'" onclick="setFilter(\''+f.k+'\')">'+esc(f.label)+'</button>';}).join(''); }
 function setFilter(k){ activeFilter=k; renderFilterBar(); applyFilter(); }
