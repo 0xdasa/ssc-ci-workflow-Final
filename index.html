@@ -531,19 +531,34 @@ async function loadHoney(){ try{ var r=await fetch("CTI_Storage/CTI_STIX.json?t=
 function renderHoney(){ var uniqueIPs=new Set(),highConf=0,torVpn=0,endpointCounts={},countryCounts={},ipCounts={}; allBundles.forEach(function(b){ var objs=b.objects||[]; var ip=objs.find(function(o){return o.type==='ipv4-addr';}); var net=objs.find(function(o){return o.type==='network-traffic';}); var indicator=objs.find(function(o){return o.type==='indicator';}); if(ip&&ip.value){uniqueIPs.add(ip.value);ipCounts[ip.value]=(ipCounts[ip.value]||0)+1;} var conf=indicator?(indicator.confidence||0):0; if(conf>=80)highConf++; var labels=indicator?(indicator.labels||[]):[]; if(labels.includes('tor-exit-node')||labels.includes('vpn'))torVpn++; var epRaw=(net&&net.extensions&&net.extensions['http-request-ext'])?net.extensions['http-request-ext'].request_value:'unknown'; var ep=(epRaw||'unknown').split('/').filter(Boolean)[0]||'unknown'; if(ep==='api')ep='Admin token'; endpointCounts[ep]=(endpointCounts[ep]||0)+1; var country=(ip&&ip.x_country)?ip.x_country:'Unknown'; countryCounts[country]=(countryCounts[country]||0)+1; }); document.getElementById('mTotal').textContent=allBundles.length; document.getElementById('mIPs').textContent=uniqueIPs.size; document.getElementById('mHigh').textContent=highConf; document.getElementById('mTor').textContent=torVpn; var sortedIPs=Object.entries(ipCounts).sort(function(a,b){return b[1]-a[1];}); document.getElementById('mTopIP').textContent=sortedIPs.length?sortedIPs[0][0]+' ('+sortedIPs[0][1]+'x)':'—'; var sortedEPs=Object.entries(endpointCounts).sort(function(a,b){return b[1]-a[1];}); document.getElementById('mTopEP').textContent=sortedEPs.length?'/'+sortedEPs[0][0]+' ('+sortedEPs[0][1]+'x)':'—'; document.getElementById('subTitle').textContent=allBundles.length+' bundle'+(allBundles.length!==1?'s':'')+' loaded · auto-refresh every 10s · last: '+fmtTs(new Date().toISOString()); renderBar('chartEndpoint',endpointCounts,function(l){return l.includes('s3')?'#1D9E75':l.includes('legacy')||l.includes('config')?'#fbbf24':'#a78bfa';}); renderBar('chartCountry',countryCounts,function(){return'#378ADD';}); var ipEl=document.getElementById('listIPs'); ipEl.innerHTML=sortedIPs.length?sortedIPs.map(function(e){return'<div class="item"><span style="color:#60a5fa">'+esc(e[0])+'</span> <span style="color:#64748b">→ '+e[1]+' hit'+(e[1]!==1?'s':'')+'</span></div>';}).join(''):'<div class="item empty">No data yet</div>'; var tlEl=document.getElementById('listTimeline'); tlEl.innerHTML=allBundles.slice().reverse().slice(0,15).map(function(b){ var objs=b.objects||[]; var ip=objs.find(function(o){return o.type==='ipv4-addr';}); var net=objs.find(function(o){return o.type==='network-traffic';}); var indicator=objs.find(function(o){return o.type==='indicator';}); var labels=indicator?(indicator.labels||[]):[]; var ep=(net&&net.extensions&&net.extensions['http-request-ext'])?net.extensions['http-request-ext'].request_value:'?'; var isHigh=indicator?(indicator.confidence||0)>=80:false; var dotColor=isHigh?'#f87171':labels.includes('tor-exit-node')?'#fbbf24':'#34d399'; return'<div class="item"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+dotColor+';margin-right:6px;vertical-align:middle"></span><span style="color:#94a3b8;font-size:11px">'+esc(fmtTs(indicator?indicator.created:''))+'</span><br><span style="color:#60a5fa">'+esc((ip&&ip.value)?ip.value:'?')+'</span><span style="color:#64748b"> → </span><span style="color:#93c5fd">'+esc(ep)+'</span><span style="color:#64748b;font-size:11px"> · '+esc((ip&&ip.x_country)?ip.x_country:'?')+'</span><br>'+labels.slice(0,4).map(function(l){return'<span class="badge '+chipColor(l)+'">'+esc(l)+'</span>';}).join('')+'</div>'; }).join(''); renderFilterBar(); applyFilter(); }
 loadHoney();
 setInterval(function() {
-    // remember which bundles are open before refresh
     var openIds = [];
     document.querySelectorAll('.bundle-body.open').forEach(function(el) {
         openIds.push(el.id);
     });
 
+    // save active tab for each open bundle
+    var activeTabs = {};
+    openIds.forEach(function(id) {
+        var cardId = id; // e.g. "bc_0"
+        ['http','geo','abuse','shodan','vt','actor'].forEach(function(k) {
+            var panel = document.getElementById(cardId + '_panel_' + k);
+            if (panel && panel.style.display === 'block') {
+                activeTabs[cardId] = k;
+            }
+        });
+    });
+
     loadHoney().then(function() {
-        // re-open the ones that were open
         openIds.forEach(function(id) {
             var body = document.getElementById(id);
             var arr  = document.getElementById('arr_' + id);
-            if (body) { body.classList.add('open'); }
-            if (arr)  { arr.classList.add('open'); }
+            if (body) body.classList.add('open');
+            if (arr)  arr.classList.add('open');
+
+            // restore the active tab
+            if (activeTabs[id]) {
+                switchBundleTab(id, activeTabs[id]);
+            }
         });
     });
 }, 10000);
