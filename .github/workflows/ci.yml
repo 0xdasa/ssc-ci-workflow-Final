@@ -189,18 +189,7 @@ jobs:
           echo "ML_EXIT_CODE=$RESULT"
           echo "ml_result=$RESULT" >> $GITHUB_OUTPUT
 
-      # =========================
-      # CTI FEATURE EXTRACTION
-      # =========================
-      - name: Extract Decoy CTI Features
-        if: steps.detect_pkg.outputs.skip_pipeline == 'false'
-        continue-on-error: true
-        run: |
-          export PYTHONPATH=$PYTHONPATH:$(pwd)
-          sudo chmod -R 777 decoy_logs/ || true
-          sudo chmod -R 777 CTI_Storage/ || true
-          python scripts/extract_decoy_features.py || echo "extract_decoy_features.py not found - skipping"
-
+      
       # =========================
       # RELEASE LOGIC — ML DECIDES
       # =========================
@@ -231,7 +220,7 @@ jobs:
           sudo chmod -R 777 CTI_Storage/ || true
           python cti_merger/cti_merger.py || echo "cti_merger.py not found - skipping"
       
-            # =========================
+      # =========================
       # EXPORT LOGS TO FIRESTORE
       # =========================
       - name: Export Logs to Firestore
