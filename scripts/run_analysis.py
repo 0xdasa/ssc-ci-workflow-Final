@@ -19,7 +19,6 @@ except Exception:
 # ======================================
 from scripts.sap_feature_engine.pypi_feature_extractor import PyPI_Feature_Extractor
 from scripts.sap_feature_engine.npm_feature_extractor import NPM_Feature_Extractor
-from scripts.package_adapter import PackageAdapter
 
 # ======================================
 # PATHS
@@ -52,12 +51,10 @@ file_path = extract_package_if_needed(original_input)
 # ======================================
 # BUILD PACKAGE STRUCTURE
 # ======================================
-adapter = PackageAdapter()
+afile_path = extract_package_if_needed(original_input)
 
-if os.path.isfile(file_path):
-    package_root = adapter.build_from_single_file(file_path)
-else:
-    package_root = file_path
+# Package root is the extracted package directory
+package_root = file_path
 
 # ======================================
 # SELECT CORRECT EXTRACTOR
