@@ -181,104 +181,234 @@ def find_pypi_entries(tmp_dir):
 
 def parse_opensnoop(path, pid_filter=None):
     counts = {
-        "root_dir_access": 0, "etc_dir_access":  0,
-        "tmp_dir_access":  0, "home_dir_access": 0,
-        "ssh_dir_access":  0, "other_dir_access": 0,
+        "root_dir_access": 0,
+        "etc_dir_access": 0,
+        "tmp_dir_access": 0,
+        "home_dir_access": 0,
+        "ssh_dir_access": 0,
+        "other_dir_access": 0,
     }
+
+    # Stores every observed access event without limiting the number.
+    evidence = {
+        "all_open_events": [],
+        "root_access_values": [],
+        "etc_access_values": [],
+        "tmp_access_values": [],
+        "home_access_values": [],
+        "ssh_access_values": [],
+        "other_access_values": [],
+    }
+
     try:
-        with open(path) as f:
+        with open(path, "r", errors="ignore") as f:
             for line in f:
-                parts = line.strip().split()
-                if len(parts) < 6: continue
-                if parts[0] == "TIME(s)": continue
-                try:
-                    pid      = parts[1]
-                    path_val = parts[-1]
-                except:
+                raw_line = line.rstrip("\n")
+                parts = raw_line.split()
+
+                if len(parts) < 6:
                     continue
-                if pid_filter and pid != str(pid_filter): continue
-                if "/root/"  in path_val: counts["root_dir_access"]  += 1
-                elif "/etc/" in path_val: counts["etc_dir_access"]   += 1
-                elif "/tmp/" in path_val: counts["tmp_dir_access"]   += 1
-                elif "/home/"in path_val: counts["home_dir_access"]  += 1
-                elif "/.ssh/"in path_val: counts["ssh_dir_access"]   += 1
-                else:                     counts["other_dir_access"] += 1
+
+                if parts[0] == "TIME(s)":
+                    continue
+
+                try:
+                    pid = parts[1]
+
+                    # opensnoop output normally places PATH after the first columns.
+                    # Joining preserves paths containing spaces.
+                    path_val = " ".join(parts[5:])
+                except Exception:
+                    continue
+
+                if pid_filter and pid != str(pid_filter):
+                    continue
+
+                # Check SSH first because /home/user/.ssh/... is also under /home/.
+                if "/.ssh/" in path_val or "/root/.ssh/" in path_val:
+                    category = "ssh"
+                    counts["ssh_dir_access"] += 1
+                    evidence["ssh_access_values"].append(path_val)
+
+                elif "/root/" in path_val:
+                    category = "root"
+                    counts["root_dir_access"] += 1
+                    evidence["root_access_values"].append(path_val)
+
+                elif "/etc/" in path_val:
+                    category = "etc"
+                    counts["etc_dir_access"] += 1
+                    evidence["etc_access_values"].append(path_val)
+
+                elif "/tmp/" in path_val:
+                    category = "tmp"
+                    counts["tmp_dir_access"] += 1
+                    evidence["tmp_access_values"].append(path_val)
+
+                elif "/home/" in path_val:
+                    category = "home"
+                    counts["home_dir_access"] += 1
+                    evidence["home_access_values"].append(path_val)
+
+                else:
+                    category = "other"
+                    counts["other_dir_access"] += 1
+                    evidence["other_access_values"].append(path_val)
+
+                evidence["all_open_events"].append({
+                    "pid": pid,
+                    "category": category,
+                    "path": path_val,
+                    "raw_event": raw_line
+                })
+
     except Exception as e:
         print(f"[opensnoop] parse error: {e}")
-    return {
+
+    features = {
         **counts,
         "ebpf_accessed_root": counts["root_dir_access"] > 0,
-        "ebpf_accessed_ssh":  counts["ssh_dir_access"]  > 0,
-        "ebpf_accessed_etc":  counts["etc_dir_access"]  > 5,
+        "ebpf_accessed_ssh": counts["ssh_dir_access"] > 0,
+        "ebpf_accessed_etc": counts["etc_dir_access"] > 5,
     }
+
+    return features, evidence
 
 
 # ── strace full output parser ─────────────────────────────────
 
 def parse_strace_full(path):
-    security_calls = {"setuid","setgid","chmod","capset","setreuid","ptrace","capget"}
-    network_calls  = {"socket","connect","accept","listen","sendto","recvfrom","bind","recvmsg","sendmsg"}
-    process_calls  = {"fork","vfork","clone","clone3","execve","kill","exit","exit_group"}
-    file_calls     = {"open","openat","read","write","close","unlink","rename","newfstatat"}
-    suspicious_ports = {4444, 1337, 6667, 31337, 9001, 8080, 2323, 1234}
+    security_calls = {
+        "setuid", "setgid", "chmod", "capset",
+        "setreuid", "ptrace", "capget"
+    }
+
+    network_calls = {
+        "socket", "connect", "accept", "listen",
+        "sendto", "recvfrom", "bind", "recvmsg", "sendmsg"
+    }
+
+    process_calls = {
+        "fork", "vfork", "clone", "clone3",
+        "execve", "kill", "exit", "exit_group"
+    }
+
+    file_calls = {
+        "open", "openat", "read", "write",
+        "close", "unlink", "rename", "newfstatat"
+    }
+
+    suspicious_ports = {
+        4444, 1337, 6667, 31337, 9001, 8080, 2323, 1234
+    }
 
     counts = {
         "ebpf_security_ops": 0,
-        "ebpf_network_ops":  0,
-        "ebpf_process_ops":  0,
-        "ebpf_file_ops":     0,
+        "ebpf_network_ops": 0,
+        "ebpf_process_ops": 0,
+        "ebpf_file_ops": 0,
     }
 
-    remote_ips   = set()
+    remote_ips = set()
     remote_ports = set()
     c2_suspected = False
 
-    syscall_re = re.compile(r'^\d+\s+(\w+)\(')
-    connect_re = re.compile(r'connect\(.*sin_port=htons\((\d+)\).*inet_addr\("([^"]+)"\)')
-    execve_security_re = re.compile(r'execve\(".*?(chmod|chown|chgrp|setuid|ptrace|capset|sudo|su)\b')
-   
-    try:
-        with open(path) as f:
-            for line in f:
-                line = line.strip()
-                if not line: continue
+    evidence = {
+        "all_strace_events": [],
+        "security_operation_values": [],
+        "network_operation_values": [],
+        "process_operation_values": [],
+        "file_operation_values": [],
+        "remote_connection_values": [],
+        "c2_suspected_connection_values": [],
+    }
 
-                m = syscall_re.match(line)
+    syscall_re = re.compile(r'^\d+\s+(\w+)\(')
+    connect_re = re.compile(
+        r'connect\(.*sin_port=htons\((\d+)\).*inet_addr\("([^"]+)"\)'
+    )
+    execve_security_re = re.compile(
+        r'execve\(".*?(chmod|chown|chgrp|setuid|ptrace|capset|sudo|su)\b'
+    )
+
+    try:
+        with open(path, "r", errors="ignore") as f:
+            for line in f:
+                raw_line = line.rstrip("\n")
+
+                if not raw_line.strip():
+                    continue
+
+                # Preserve every raw strace line without a limit.
+                evidence["all_strace_events"].append(raw_line)
+
+                m = syscall_re.match(raw_line)
                 if m:
                     name = m.group(1).lower()
-                    if name in security_calls: counts["ebpf_security_ops"] += 1
-                    if name in network_calls:  counts["ebpf_network_ops"]  += 1
-                    if name in process_calls:  counts["ebpf_process_ops"]  += 1
-                    if name in file_calls:     counts["ebpf_file_ops"]     += 1
-                        
-                # Detect security-related execve calls (chmod, chown, sudo, etc.)
-                es = execve_security_re.search(line)
+
+                    if name in security_calls:
+                        counts["ebpf_security_ops"] += 1
+                        evidence["security_operation_values"].append(raw_line)
+
+                    if name in network_calls:
+                        counts["ebpf_network_ops"] += 1
+                        evidence["network_operation_values"].append(raw_line)
+
+                    if name in process_calls:
+                        counts["ebpf_process_ops"] += 1
+                        evidence["process_operation_values"].append(raw_line)
+
+                    if name in file_calls:
+                        counts["ebpf_file_ops"] += 1
+                        evidence["file_operation_values"].append(raw_line)
+
+                # Detect security-related commands executed through execve.
+                es = execve_security_re.search(raw_line)
                 if es:
                     counts["ebpf_security_ops"] += 1
-                cm = connect_re.search(line)
+                    evidence["security_operation_values"].append(raw_line)
+
+                # Extract full remote connection evidence.
+                cm = connect_re.search(raw_line)
                 if cm:
                     port = int(cm.group(1))
-                    ip   = cm.group(2)
+                    ip = cm.group(2)
+
+                    connection_event = {
+                        "ip": ip,
+                        "port": port,
+                        "raw_event": raw_line
+                    }
+
+                    evidence["remote_connection_values"].append(connection_event)
+
                     if port > 0:
                         remote_ports.add(port)
-                        if port in suspicious_ports:
-                            c2_suspected = True
+
                     if ip and not is_private_ip(ip):
                         remote_ips.add(ip)
+
+                    if port in suspicious_ports:
+                        c2_suspected = True
+                        evidence["c2_suspected_connection_values"].append(
+                            connection_event
+                        )
 
     except Exception as e:
         print(f"[strace] parse error: {e}")
 
-    return {
+    features = {
         **counts,
         "ebpf_privilege_escalation": counts["ebpf_security_ops"] > 0,
-        "ebpf_network_activity":     counts["ebpf_network_ops"]  > 0,
-        "ebpf_spawned_process":      counts["ebpf_process_ops"]  > 2,
-        "ebpf_remote_ips_count":     len(remote_ips),
-        "ebpf_remote_ips":           "|".join(sorted(remote_ips)),
-        "ebpf_remote_ports":         "|".join(str(p) for p in sorted(remote_ports)),
-        "ebpf_c2_port_suspected":    c2_suspected,
+        "ebpf_network_activity": counts["ebpf_network_ops"] > 0,
+        "ebpf_spawned_process": counts["ebpf_process_ops"] > 2,
+        "ebpf_remote_ips_count": len(remote_ips),
+        "ebpf_remote_ips": "|".join(sorted(remote_ips)),
+        "ebpf_remote_ports": "|".join(str(p) for p in sorted(remote_ports)),
+        "ebpf_c2_port_suspected": c2_suspected,
     }
+
+    return features, evidence
 
 
 def extract_patterns(opensnoop_path, pid_filter=None):
@@ -416,14 +546,20 @@ def analyze_package(pkg_name, run_number="0"):
     time.sleep(2)
 
     print("[analyzer] Parsing results...")
-    opensnoop_features = parse_opensnoop(opensnoop_out, None)
-    strace_features    = parse_strace_full(strace_out)
-    pattern_features   = extract_patterns(opensnoop_out, None)
+
+    opensnoop_features, opensnoop_evidence = parse_opensnoop(opensnoop_out, None)
+    strace_features, strace_evidence = parse_strace_full(strace_out)
+    pattern_features = extract_patterns(opensnoop_out, None)
 
     all_features = {
         **opensnoop_features,
         **strace_features,
         **pattern_features,
+    }
+
+    raw_evidence = {
+        "opensnoop_file_access_evidence": opensnoop_evidence,
+        "strace_runtime_evidence": strace_evidence,
     }
 
     print(f"[analyzer] Features: {all_features}")
@@ -435,15 +571,25 @@ def analyze_package(pkg_name, run_number="0"):
 
     with open(log_path, "w") as f:
         json.dump({
-            "package":          pkg_name,
-            "analysis_type":    "aws_ebpf",
-            "run_timestamp":    time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "sandbox_start":    sandbox_start,
-            "sandbox_end":      sandbox_end,
+            "package": pkg_name,
+            "analysis_type": "aws_ebpf",
+            "run_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sandbox_start": sandbox_start,
+            "sandbox_end": sandbox_end,
             "entry_points_run": entry_points_run,
-            "ebpf_features":    all_features,
+
+            # Summary numeric/boolean features.
+            # These remain suitable for the ML pipeline and dashboard display.
+            "ebpf_features": all_features,
+
+            # Existing feature format preserved for the current pipeline.
             "dynamic_features": {k: str(v) for k, v in all_features.items()},
-        }, f, indent=2)
+
+            # Full raw evidence retained only in the log.
+            # No maximum number of captured values is applied here.
+            "raw_evidence": raw_evidence,
+
+        }, f, indent=2, ensure_ascii=False)
 
     print(f"[analyzer] Results saved at {log_path}")
     print(f"[analyzer] Done ✅ {pkg_name}")
