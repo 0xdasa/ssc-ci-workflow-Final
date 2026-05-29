@@ -730,16 +730,6 @@ function normalizeModelFactors(ml) {
     .slice(0, 10);
 }
 
-function strongestBehaviorFinding(findings) {
-  const arr = findings || [];
-  if (!arr.length) return "No behavioral finding";
-
-  const sorted = [...arr].sort((a, b) => (Number(b.weight) || 0) - (Number(a.weight) || 0));
-  const top = sorted[0];
-
-  return `${cleanFeatureName(top.label || "finding")} (${top.tier || "info"}, +${top.weight || 0})`;
-}
-
 function renderShapExplanation(ml) {
   const factors = normalizeModelFactors(ml);
 
@@ -791,14 +781,9 @@ function renderShapExplanation(ml) {
 function renderKVFeatures(ml, runtime, cloud) {
   const c = el2('dynamic-features-container');
 
-  const findings = runtime?.behavior_findings || [];
-
   const summaryRows = [
     ['Final Classification', mlVerdict(ml), 'true'],
     ['Risk Level', runtime?.risk_level || ml.risk_level || 'CRITICAL', 'true'],
-    ['Runtime Score', runtime?.score ?? runtime?.behavior_score ?? '—', 'warn'],
-    ['Behavior Findings', findings.length, findings.length ? 'warn' : ''],
-    ['Strongest Finding', strongestBehaviorFinding(findings), findings.length ? 'true' : ''],
     ['Analyzed Package', ml.package || runtime?.package || '—', '']
   ].filter(([k, v]) => isUsefulValue(v));
 
@@ -953,11 +938,7 @@ function renderCloudD(cloud) {
     'network_domains_count',
     'network_dns_queries_count',
     'network_http_requests_count',
-    'cloud_remote_ports',
-    'ebpf_remote_ports',
     'remote_ips',
-    'cloud_remote_ips',
-    'ebpf_remote_ips',
   ]);
 
   const labelMap = {
@@ -1146,12 +1127,11 @@ function normalizePublicDoc(d) {
   };
   const runtime = {
     package: d.package || "—",
-    verdict: d.final_result || d.runtime_verdict || "BENIGN",
-    score: d.runtime_score || 0,
+    verdict: d.final_result || "BENIGN",
     risk_level: d.risk_level || "—",
     run_timestamp: toDateString(d.updated_at),
-    behavior_findings: d.top_findings || [],
-    behavioral_phases: d.behavioral_phases || {},
+    behavior_findings: [],
+    behavioral_phases: {},
     honeytoken_hits: [],
     accessed_files: [],
     processes: [],
@@ -1176,8 +1156,7 @@ function normalizePublicDoc(d) {
     accessed_files: publicRuntime.accessed_files,
     honeytoken_paths: d.honeytoken_summary?.paths,
     http_requests: publicRuntime.http_requests,
-    dns_queries: publicRuntime.dns_queries,
-    feat_behavior_score: d.behavior_score
+    dns_queries: publicRuntime.dns_queries
   };
   
   const honeySummary = d.honeytoken_summary || {};
