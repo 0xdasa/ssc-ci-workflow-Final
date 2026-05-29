@@ -49,25 +49,6 @@ def is_private_ip(ip):
     except Exception:
         return True
 
-def edit_distance(a, b):
-    m, n = len(a), len(b)
-    dp = [[0] * (n + 1) for _ in range(m + 1)]
-    for i in range(m + 1): dp[i][0] = i
-    for j in range(n + 1): dp[0][j] = j
-    for i in range(1, m + 1):
-        for j in range(1, n + 1):
-            dp[i][j] = dp[i-1][j-1] if a[i-1] == b[j-1] else 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
-    return dp[m][n]
-
-def check_typosquatting(name):
-    popular = ['requests', 'numpy', 'pandas', 'flask', 'django',
-               'boto3', 'urllib3', 'setuptools', 'pip', 'six',
-               'cryptography', 'paramiko', 'pyyaml', 'pillow']
-    for pkg in popular:
-        if name != pkg and edit_distance(name.lower(), pkg) <= 2:
-            return pkg
-    return None
-
 # ============================================================
 # DOMAIN FILTERING
 # ============================================================
@@ -192,88 +173,17 @@ def analyze_package_metadata(package_dir):
         if re.search(r'cmdclass|post_install|entry_points', content): findings["python_install_hooks"] = True
         pkg_name = re.search(r'name\s*=\s*["\']([\w.-]+)["\']', content)
         if pkg_name:
-            name = pkg_name.group(1)
-            findings["package_name"] = name
-            findings["typosquat_suspect"] = check_typosquatting(name)
+            findings["package_name"] = pkg_name.group(1)
     pkg_json = os.path.join(package_dir, "package.json")
     if os.path.exists(pkg_json):
         try:
             with open(pkg_json) as f: data = json.load(f)
             for hook in ("preinstall","postinstall","prepare","install"):
                 if hook in data.get("scripts",{}): findings[f"npm_{hook}_script"] = data["scripts"][hook]
-            if data.get("name"): findings["package_name"] = data["name"]; findings["typosquat_suspect"] = check_typosquatting(data["name"])
+            if data.get("name"):
+                findings["package_name"] = data["name"]
         except Exception: pass
     return findings
-
-# ============================================================
-# POLICY-BASED SCORING — KSA Organization
-# ============================================================
-
-HIGH_RISK_COUNTRIES = {"North Korea", "Iran", "Syria"}
-
-WEIGHTS = {"critical": 10, "high": 5, "medium": 2, "low": 1}
-
-BEHAVIOR_RULES = [
-    ("sensitive_file_passwd",   "critical", r'/etc/passwd|/etc/shadow'),
-    ("sensitive_file_ssh",      "critical", r'\.ssh/id_rsa|\.ssh/authorized_keys'),
-    ("sensitive_file_env",      "critical", r'\.env|\.aws/credentials|secrets\.yaml'),
-    ("reverse_shell",           "critical", r'execve.*nc.*-e|execve.*bash.*-i.*>&|/dev/tcp/'),
-    ("encoded_payload_exec",    "critical", r'exec.*base64|eval.*decode'),
-    # Fix 1: Stronger process injection — removed generic ptrace (false positives)
-    # Only trigger on actual memory-write injection techniques
-    ("process_injection",       "critical", r'process_vm_writev|memfd_create'
-                                             r'|ptrace.*PTRACE_POKEDATA|ptrace.*PTRACE_POKETEXT'
-                                             r'|mprotect.*PROT_EXEC'),
-    ("spawns_shell",            "high",     r'execve.*"(/bin/bash|/bin/sh|/bin/dash|cmd\.exe)"'),
-    ("outbound_post",           "high",     r'connect.*443|sendto.*POST'),
-    ("unknown_dns_query",       "high",     r'connect.*53'),
-    ("reads_browser_data",      "high",     r'\.mozilla|Chrome/Default|\.config/google-chrome'),
-    ("reads_credentials_store", "high",     r'Keychain|libsecret|kwallet'),
-    ("opens_socket",            "medium",   r'socket\(AF_INET'),
-    # Fix 5: Reduced /proc/net to low — normal in Node.js and containers
-    ("reads_proc_net",          "low",      r'/proc/net|/proc/self/net'),
-    # Fix 5: Removed reads_env_vars — getenv() is too common in benign packages
-    # Fix 5: Removed normal_file_read — every process reads files, adds noise
-    ("large_file_write",        "medium",   r'write\(.*[0-9]{5,}'),
-    ("reads_tmp",               "low",      r'open\("(/tmp|/var/tmp)'),
-]
-
-
-def calculate_score(strace_lines, external_ips_info=None,
-                    captured_requests=None):
-    score    = 0
-    findings = []
-    seen     = set()
-
-    # Strace behavior rules
-    for line in strace_lines:
-        for label, tier, pattern in BEHAVIOR_RULES:
-            if label in seen: continue
-            if re.search(pattern, line, re.IGNORECASE):
-                score += WEIGHTS[tier]
-                findings.append({"label": label, "tier": tier, "weight": WEIGHTS[tier], "evidence": line[:150]})
-                seen.add(label)
-
-    # Policy: high-risk country
-    if external_ips_info:
-        for ip_info in external_ips_info:
-            country = ip_info.get("country", "")
-            if country in HIGH_RISK_COUNTRIES:
-                score += 15
-                findings.append({"label": "connection_to_high_risk_country", "tier": "critical",
-                                  "weight": 15, "evidence": f"Connected to IP in {country}"})
-                break
-
-    # Policy: HTTP exfiltration
-    if captured_requests:
-        for req in captured_requests:
-            if req.get("analysis", {}).get("large_exfil_attempt"):
-                score += 10
-                findings.append({"label": "http_data_exfiltration", "tier": "high", "weight": 10,
-                                  "evidence": f"Large POST to {req.get('path','')}"})
-                break
-
-    return score, findings
 
 # ============================================================
 # BEHAVIORAL PHASES
@@ -580,7 +490,7 @@ def monitor_process_behavior(pid: int, duration: int = 120) -> dict:
 def extract_dynamic_features(
     processes, accessed_files, new_files, modified_files,
     network_analysis, captured_requests,
-    strace_all_lines, behavioral_phases, behavior_score,
+    strace_all_lines, behavioral_phases,
     static_results,
     behavioral_monitor=None,
 ):
@@ -706,7 +616,6 @@ def extract_dynamic_features(
     domain_is_known_malicious = check_domain_virustotal(contacted_domain)
 
     return {
-        "feat_behavior_score":              behavior_score,
         "feat_has_exfiltration_phase":      str(bool(behavioral_phases.get("exfiltration"))),
         "feat_has_credential_access_phase": str(bool(behavioral_phases.get("credential_access"))),
         "feat_has_persistence_phase":       str(bool(behavioral_phases.get("persistence"))),
@@ -853,38 +762,6 @@ for d in captured_dns:
         
 external_ips_info = network_analysis.get("external_ips", [])
 
-# Policy-aware scoring
-score, behavior_findings = calculate_score(
-    strace_all_lines,
-    external_ips_info=external_ips_info,
-    captured_requests=captured_requests,
-)
-
-# Bonus from static analysis
-for fname, sa in static_results.items():
-    if sa.get("has_obfuscation"):
-        score += 5
-        behavior_findings.append({"label":"obfuscated_code","tier":"high","weight":5,"file":fname})
-    if sa.get("reverse_shell_pattern"):
-        score += 10
-        behavior_findings.append({"label":"reverse_shell_in_source","tier":"critical","weight":10,"file":fname})
-
-if package_metadata.get("python_install_hooks") or any(
-        package_metadata.get(f"npm_{h}_script") for h in ("preinstall","postinstall","prepare","install")):
-    score += 5
-    behavior_findings.append({"label":"install_hook_detected","tier":"high","weight":5})
-
-if package_metadata.get("typosquat_suspect"):
-    score += 3
-    behavior_findings.append({"label":"typosquatting_suspect","tier":"medium","weight":3,
-                               "similar_to":package_metadata["typosquat_suspect"]})
-
-# Verdict
-verdict = "CLEAN"
-if score >= 1:  verdict = "SUSPICIOUS"
-if score >= 10: verdict = "MALICIOUS"
-if score >= 20: verdict = "CRITICAL"
-
 # Behavioral phases
 behavioral_phases = build_behavioral_phases(timeline)
 
@@ -901,7 +778,6 @@ dynamic_features = extract_dynamic_features(
     captured_requests=captured_requests,
     strace_all_lines=strace_all_lines,
     behavioral_phases=behavioral_phases,
-    behavior_score=score,
     static_results=static_results,
     behavioral_monitor=behavioral_monitor_result,
 )
@@ -915,9 +791,7 @@ os.makedirs("decoy_logs/decoy_runs", exist_ok=True)
 
 log = {
     "package": os.path.basename(original_input),
-    "verdict": verdict, "score": score,
     "run_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-    "behavior_findings": behavior_findings,
     "behavioral_phases": behavioral_phases,
     "static_analysis":   static_results,
     "package_metadata":  package_metadata,
@@ -929,9 +803,6 @@ log = {
     "decoded_payloads":  decoded_payloads,
     "memory_strings":    list(set(memory_strings))[:100],
     "timeline":          timeline,
-    "behavior_score":    score,
-    "behavior_tiers":    [f.get("tier","")   for f in behavior_findings if isinstance(f,dict)],
-    "behavior_weights":  [f.get("weight",0)  for f in behavior_findings if isinstance(f,dict)],
     "dns_queries":       [d.get("query","")  for d in captured_dns      if d.get("query")],
     "http_hosts":        [r.get("host","")   for r in captured_requests if r.get("host")],
     "http_methods":      [r.get("method","") for r in captured_requests if r.get("method")],
@@ -964,5 +835,5 @@ ptr_path = f"decoy_logs/ptr_{ptr_name}.txt"
 with open(ptr_path, "w") as f:
     f.write(log_path)
 
-print(f"Saved: {log_path} | Verdict: {verdict} | Score: {score}")
+print(f"Saved runtime analysis log: {log_path}")
 print(f"Dynamic features saved: {list(dynamic_features.keys())}")
