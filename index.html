@@ -659,7 +659,35 @@ function rowD(icon,text){ return `<div class="row"><span class="row-icon">${icon
 function cleanFeatureName(s){ return String(s).replace(/^num__/,'').replace(/^cat__/,'').replace(/^feat_/,'').replace(/^cti_/,'CTI: ').replace(/^semgrep_/,'Semgrep: ').replace(/^decoy_/,'Runtime: ').replace(/^ebpf_/,'Cloud: ').replace(/_/g,' ').replace(/\s+/g,' ').trim() }
 function setRiskBar(prob){ const pct=Math.round(Math.max(0,Math.min(1,Number(prob)||0))*100); const f=el2('ml-score-fill'); f.style.width=pct+'%'; f.style.background=pct>=70?'var(--red)':pct>=50?'var(--yellow)':'var(--green)' }
 function mlVerdict(ml){ if(ml.prediction===1||String(ml.prediction).toLowerCase()==='malicious') return 'MALICIOUS'; return 'BENIGN' }
-function updateMainBanner(ml,runtime,cloud){ const verdict=runtime&&runtime.verdict&&runtime.verdict!=='CLEAN'?runtime.verdict:mlVerdict(ml); const banner=el2('verdict-banner'); banner.className=verdict; el2('b-pkg').textContent=ml.package||runtime?.package||'—'; const vEl=el2('b-verdict'); vEl.textContent=verdict; vEl.className='banner-verdict '+verdict; const prob=Number(ml.risk_probability||0); el2('b-ml-risk').textContent=Math.round(prob*100)+'%'; const cf=cloud?.dynamic_features||cloud?.ebpf_features||{}; const ops=['ebpf_security_ops','ebpf_network_ops','ebpf_process_ops','ebpf_file_ops'].reduce((a,k)=>a+(parseInt(cf[k]||0)||0),0); el2('b-cloud-ops').textContent=ops; el2('b-timestamp').textContent = 'Last analysis update: ' + (ml.timestamp || '—') + ' (Asia/Riyadh)'; setRiskBar(prob); el2('dashboard-last-updated').textContent='Updated: '+new Date().toLocaleTimeString(); }
+
+// UPDATED: updateMainBanner - uses only mlVerdict
+function updateMainBanner(ml, runtime, cloud) {
+  const verdict = mlVerdict(ml);
+
+  const banner = el2('verdict-banner');
+  banner.className = verdict;
+
+  el2('b-pkg').textContent = ml.package || runtime?.package || '—';
+
+  const vEl = el2('b-verdict');
+  vEl.textContent = verdict;
+  vEl.className = 'banner-verdict ' + verdict;
+
+  const prob = Number(ml.risk_probability || 0);
+  el2('b-ml-risk').textContent = Math.round(prob * 100) + '%';
+
+  const cf = cloud?.dynamic_features || cloud?.ebpf_features || {};
+  const ops = ['ebpf_security_ops', 'ebpf_network_ops', 'ebpf_process_ops', 'ebpf_file_ops']
+    .reduce((a, k) => a + (parseInt(cf[k] || 0) || 0), 0);
+
+  el2('b-cloud-ops').textContent = ops;
+  el2('b-timestamp').textContent =
+    'Last analysis update: ' + (ml.timestamp || '—') + ' (Asia/Riyadh)';
+
+  setRiskBar(prob);
+  el2('dashboard-last-updated').textContent =
+    'Updated: ' + new Date().toLocaleTimeString();
+}
 
 function isUsefulValue(v) {
   if (v === null || v === undefined) return false;
@@ -778,12 +806,13 @@ function renderShapExplanation(ml) {
   `;
 }
 
+// UPDATED: renderKVFeatures - Risk Level default is '—'
 function renderKVFeatures(ml, runtime, cloud) {
   const c = el2('dynamic-features-container');
 
   const summaryRows = [
     ['Final Classification', mlVerdict(ml), 'true'],
-    ['Risk Level', runtime?.risk_level || ml.risk_level || 'CRITICAL', 'true'],
+    ['Risk Level', ml.risk_level || runtime?.risk_level || '—', 'true'],
     ['Analyzed Package', ml.package || runtime?.package || '—', '']
   ].filter(([k, v]) => isUsefulValue(v));
 
