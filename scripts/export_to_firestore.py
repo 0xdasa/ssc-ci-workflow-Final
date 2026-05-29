@@ -161,9 +161,6 @@ def decide_result(ml_log, runtime_log, ebpf_log):
     prediction = ml_log.get("prediction")
     probability = float(ml_log.get("risk_probability", 0) or 0)
 
-    runtime_verdict = str(runtime_log.get("verdict", "CLEAN")).upper()
-    runtime_score = int(runtime_log.get("score", 0) or 0)
-
     ebpf_features = ebpf_log.get("ebpf_features", {}) or {}
     ebpf_bad = any([
         ebpf_features.get("ebpf_privilege_escalation") is True,
@@ -177,24 +174,18 @@ def decide_result(ml_log, runtime_log, ebpf_log):
     if prediction == 1 or probability >= 0.50:
         return "MALICIOUS"
 
-    if runtime_verdict in ["SUSPICIOUS", "MALICIOUS", "CRITICAL"]:
-        return "MALICIOUS"
-
-    if runtime_score >= 1:
-        return "MALICIOUS"
-
     if ebpf_bad:
         return "MALICIOUS"
 
     return "BENIGN"
 
 
-def risk_level(final_result, probability, runtime_score):
+def risk_level(final_result, probability):
     if final_result == "BENIGN":
         return "LOW"
-    if probability >= 0.85 or runtime_score >= 20:
+    if probability >= 0.85:
         return "CRITICAL"
-    if probability >= 0.65 or runtime_score >= 10:
+    if probability >= 0.65:
         return "HIGH"
     return "MEDIUM"
 
@@ -607,9 +598,7 @@ def main():
 
     final_result = decide_result(ml_log, runtime_log, ebpf_log)
     probability = float(ml_log.get("risk_probability", 0) or 0)
-    runtime_score = int(runtime_log.get("score", 0) or 0)
 
-    behavior_findings = runtime_log.get("behavior_findings", []) or []
     processes = runtime_log.get("processes", []) or []
     accessed_files = runtime_log.get("accessed_files", []) or []
     dynamic_features = runtime_log.get("dynamic_features", {}) or {}
@@ -625,24 +614,12 @@ def main():
         "package_stem": strip_archive_ext(package_file),
         "final_result": final_result,
         "is_malicious": final_result == "MALICIOUS",
-        "risk_level": risk_level(final_result, probability, runtime_score),
+        "risk_level": risk_level(final_result, probability),
         "risk_probability": probability,
         "ml_prediction": ml_log.get("prediction"),
-        "runtime_verdict": runtime_log.get("verdict", "NO_RUNTIME_LOG"),
-        "runtime_score": runtime_score,
-        "findings_count": len(behavior_findings),
         "processes_count": len(processes),
         "accessed_files_count": len(accessed_files),
         "network_summary": summarize_network(runtime_log, ebpf_log),
-        "top_findings": [
-            {
-                "tier": f.get("tier"),
-                "label": f.get("label"),
-                "weight": f.get("weight"),
-            }
-            for f in behavior_findings[:10]
-            if isinstance(f, dict)
-        ],
         "dynamic_features": compact_dict(dynamic_features),
         "ebpf_features": compact_dict(ebpf_features),
         "public_runtime_values": public_runtime_values,
@@ -654,7 +631,7 @@ def main():
         },
         "updated_at": now,
         "expires_at": summary_expires,
-        "top_shap": top_shap_values,  # إضافة SHAP هنا
+        "top_shap": top_shap_values,
     }
 
     analysis_doc = {
@@ -662,7 +639,6 @@ def main():
         "package": package_file,
         "final_result": final_result,
         "risk_probability": probability,
-        "runtime_score": runtime_score,
         "github_run_id": github_run_id,
         "github_run_number": github_run_number,
         "github_sha": github_sha,
@@ -702,9 +678,6 @@ def main():
         "package": package_file,
         "source": runtime_source,
         "data": {
-            "verdict": runtime_log.get("verdict"),
-            "score": runtime_log.get("score"),
-            "behavior_findings": trim_list(behavior_findings, 100),
             "processes": trim_list(processes, 100),
             "accessed_files": trim_list(accessed_files, 100),
             "network_analysis": runtime_log.get("network_analysis", {}),
