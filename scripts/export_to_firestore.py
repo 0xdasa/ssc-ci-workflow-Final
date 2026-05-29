@@ -157,36 +157,27 @@ def summarize_network(runtime_log, ebpf_log):
     }
 
 
-def decide_result(ml_log, runtime_log, ebpf_log):
+# NEW FUNCTION: ML-only decision
+def ml_final_result(ml_log):
     prediction = ml_log.get("prediction")
-    probability = float(ml_log.get("risk_probability", 0) or 0)
-
-    ebpf_features = ebpf_log.get("ebpf_features", {}) or {}
-    ebpf_bad = any([
-        ebpf_features.get("ebpf_privilege_escalation") is True,
-        ebpf_features.get("ebpf_network_activity") is True,
-        ebpf_features.get("ebpf_spawned_process") is True,
-        ebpf_features.get("pattern_c2_communication") is True,
-        ebpf_features.get("pattern_process_injection") is True,
-        ebpf_features.get("pattern_privilege_escalation") is True,
-    ])
-
-    if prediction == 1 or probability >= 0.50:
+    
+    if str(prediction).upper() == "MALICIOUS" or prediction == 1:
         return "MALICIOUS"
-
-    if ebpf_bad:
-        return "MALICIOUS"
-
+    
     return "BENIGN"
 
 
+# IMPROVED risk_level function
 def risk_level(final_result, probability):
     if final_result == "BENIGN":
         return "LOW"
+    
     if probability >= 0.85:
         return "CRITICAL"
+    
     if probability >= 0.65:
         return "HIGH"
+    
     return "MEDIUM"
 
 
@@ -596,7 +587,8 @@ def main():
 
     top_shap_values = extract_top_shap(ml_log)
 
-    final_result = decide_result(ml_log, runtime_log, ebpf_log)
+    # MODIFIED: Use ml_final_result instead of decide_result
+    final_result = ml_final_result(ml_log)
     probability = float(ml_log.get("risk_probability", 0) or 0)
 
     processes = runtime_log.get("processes", []) or []
