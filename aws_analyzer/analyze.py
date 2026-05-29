@@ -213,7 +213,7 @@ def parse_opensnoop(path, pid_filter=None):
                     continue
 
                 try:
-                    pid = parts[1]
+                    pid = parts[2]
 
                     # opensnoop output normally places PATH after the first columns.
                     # Joining preserves paths containing spaces.
