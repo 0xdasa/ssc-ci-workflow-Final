@@ -828,12 +828,5 @@ with open(log_path, "w") as f:
 # Update latest.json for dashboard display
 with open("decoy_logs/latest.json", "w") as f:
     json.dump(log, f, indent=4, ensure_ascii=False)
-
-# Save pointer file named after original package — used by CI to find this log
-ptr_name = os.path.basename(original_input)
-ptr_path = f"decoy_logs/ptr_{ptr_name}.txt"
-with open(ptr_path, "w") as f:
-    f.write(log_path)
-
 print(f"Saved runtime analysis log: {log_path}")
 print(f"Dynamic features saved: {list(dynamic_features.keys())}")
