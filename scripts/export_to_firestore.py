@@ -60,13 +60,6 @@ def find_runtime_log(package_file, run_number):
     pkg_stem = strip_archive_ext(package_file)
     safe_stem = safe_id(pkg_stem)
 
-    ptr = Path(f"decoy_logs/ptr_{package_file}.txt")
-    if ptr.exists():
-        target = Path(ptr.read_text(encoding="utf-8").strip())
-        data = read_json(target, {})
-        if data:
-            return data, str(target)
-
     decoy_dir = Path("decoy_logs/decoy_runs")
     possible = [
         decoy_dir / f"{safe_stem}_run{run_number}_sandbox.json",
