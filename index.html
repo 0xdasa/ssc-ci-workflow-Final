@@ -567,7 +567,7 @@ setInterval(function() {
 
 
 <!-- ══════════════════════════════════════════
-     PANEL 2 — DASHBOARD (UPDATED: SHAP + ENHANCED CLOUD)
+     PANEL 2 — DASHBOARD (UPDATED WITH ALL MODIFICATIONS)
 ════════════════════════════════════════════ -->
 <div id="panel-dashboard" class="dash-panel">
 <style>
@@ -839,45 +839,62 @@ function tierBadgeD(t){ const map={critical:'tier-critical',high:'tier-high',med
 function renderFindingsD(findings,phases){ const list=el2('findings-list'); let html=''; if(phases&&Object.keys(phases).length){ const phaseRows=Object.entries(phases).filter(([n,e])=>(e||[]).length).map(([n,e])=>`<span class="mem-chip b64">${escD(cleanFeatureName(n))}: ${(e||[]).length}</span>`).join(''); if(phaseRows) html+=`<div class="row" style="display:block"><div style="color:var(--accent);font-family:var(--mono);font-size:11px;margin-bottom:6px">Behavior phase summary</div>${phaseRows}</div>`; } if(!findings||!findings.length){ list.innerHTML=html||'<div class="empty">No findings</div>'; return } html+=findings.map(f=>`<div class="row" style="flex-direction:column;gap:4px"><div style="display:flex;gap:8px;align-items:center">${tierBadgeD(f.tier)}<span>${escD(cleanFeatureName(f.label||''))}</span><span style="margin-left:auto;color:var(--text-dim)">+${escD(f.weight||0)}</span></div>${f.evidence?`<div style="color:var(--text-dim);font-size:10px;word-break:break-all">Evidence: ${escD(f.evidence)}</div>`:''}</div>`).join(''); list.innerHTML=html }
 function renderSimpleD(id,arr,icon='○'){ const list=el2(id); if(!arr||!arr.length){list.innerHTML='<div class="empty">No data</div>';return} list.innerHTML=arr.slice(0,60).map(x=>rowD(icon,escD(String(x)))).join('') }
 
-// RUNTIME EVIDENCE (renamed title now handled by HTML)
+// MODIFIED: renderRuntimeEvidenceD - Processes and Accessed Files removed (they have dedicated cards)
 function renderRuntimeEvidenceD(runtime) {
   const c = el2('runtime-evidence-list');
-
   const df = runtime?.dynamic_features || {};
 
+  /*
+    Processes and Accessed Files are not displayed here
+    because they already have dedicated cards below.
+  */
   const rows = {
     'Remote Ports':
-      df.remote_ports || runtime?.memory_strings?.filter(x => String(x).startsWith('port:')).map(x => String(x).replace('port:', '')),
+      df.remote_ports ||
+      runtime?.memory_strings
+        ?.filter(x => String(x).startsWith('port:'))
+        .map(x => String(x).replace('port:', '')),
 
     'New Files Created':
-      df.decoy_new_files_created || df['Runtime New Files Created'],
+      df.decoy_new_files_created ||
+      df.runtime_new_files_created ||
+      df['Runtime New Files Created'],
 
     'TMP Paths Accessed':
-      df.tmp_paths_accessed,
-
-    'Processes Spawned':
-      df.decoy_processes_spawned || df.processes || runtime?.processes,
-
-    'Accessed Files':
-      df.accessed_files || runtime?.accessed_files,
-
+      df.tmp_paths_accessed
   };
 
   const finalRows = Object.entries(rows).filter(([label, value]) => {
     if (value === null || value === undefined) return false;
 
-    if (Array.isArray(value)) return value.length > 0;
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
 
     if (typeof value === 'string') {
       const s = value.trim().toLowerCase();
-      return s && s !== '0' && s !== 'false' && s !== 'none' && s !== 'null' && s !== 'undefined' && s !== '—';
+      return (
+        s !== '' &&
+        s !== '0' &&
+        s !== 'false' &&
+        s !== 'none' &&
+        s !== 'null' &&
+        s !== 'undefined' &&
+        s !== '—'
+      );
     }
 
-    if (typeof value === 'number') return value > 0;
+    if (typeof value === 'number') {
+      return value > 0;
+    }
 
-    if (typeof value === 'boolean') return value === true;
+    if (typeof value === 'boolean') {
+      return value === true;
+    }
 
-    if (typeof value === 'object') return Object.keys(value).length > 0;
+    if (typeof value === 'object') {
+      return Object.keys(value).length > 0;
+    }
 
     return true;
   });
@@ -897,17 +914,22 @@ function renderRuntimeEvidenceD(runtime) {
       }
 
       let cls = '';
+
       if (/MALICIOUS|SUSPICIOUS|CRITICAL|encoded|credential|honeytoken/i.test(v)) {
         cls = 'true';
       } else if (!isNaN(parseFloat(v)) && Number(v) > 0) {
         cls = 'warn';
       }
 
-      if (v.length > 120) v = v.slice(0, 120) + '…';
+      if (v.length > 120) {
+        v = v.slice(0, 120) + '…';
+      }
 
       return `<div class="kv-card">
         <span class="k">${escD(label)}</span>
-        <span class="v ${cls}" title="${escD(displayRawValue(raw))}">${escD(v)}</span>
+        <span class="v ${cls}" title="${escD(displayRawValue(raw))}">
+          ${escD(v)}
+        </span>
       </div>`;
     }).join('') +
     '</div>';
@@ -916,7 +938,7 @@ function renderRuntimeEvidenceD(runtime) {
 function renderNetworkD(n,reqs,memStrings){ const list=el2('net-list'); if(!n&&!reqs?.length&&!memStrings?.length){list.innerHTML='<div class="empty">No network data</div>';return} const ips=[...new Map(((n&&n.external_ips)||[]).map(i=>[i.ip,i])).values()]; let html=`<div class="kv-grid" style="margin-bottom:8px"><div class="kv-card"><span class="k">Real domains</span><span class="v">${((n&&n.real_domains)||[]).length}</span></div><div class="kv-card"><span class="k">External IPs</span><span class="v">${ips.length}</span></div><div class="kv-card"><span class="k">DNS queries</span><span class="v">${(n&&n.total_dns_queries)||0}</span></div><div class="kv-card"><span class="k">HTTP requests</span><span class="v">${(reqs||[]).length||((n&&n.total_http_requests)||0)}</span></div></div>`; html+=ips.length?ips.map(ip=>`<div class="net-card"><div class="net-ip">${escD(ip.ip)}</div>${ip.country?`<div class="net-detail">Country: <span>${escD(ip.country)} ${escD(ip.city||'')}</span></div>`:''}${ip.isp?`<div class="net-detail">ISP: <span>${escD(ip.isp)}</span></div>`:''}${ip.org?`<div class="net-detail">Org: <span>${escD(ip.org)}</span></div>`:''}${ip.risk?`<div class="net-detail">Risk: <span>${escD(ip.risk)}</span></div>`:''}</div>`).join(''):'<div class="empty">No external IPs contacted</div>'; if(reqs&&reqs.length){ html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin:12px 0 6px">Request details</div>`; html+=reqs.slice(0,40).map(r=>{const a=r.analysis||{}; let extra=''; if(a.large_exfil_attempt)extra+=`<div class="http-tag">⚠ Large payload (${escD(a.payload_size)} bytes)</div>`; if(a.base64_decoded)extra+='<div class="http-tag">⚠ Base64 content</div>'; if(a.sensitive_json_keys)extra+=`<div class="http-tag">⚠ Sensitive keys: ${escD(a.sensitive_json_keys.join(', '))}</div>`; if(r.user_agent)extra+=`<div class="http-tag">UA: ${escD(String(r.user_agent).slice(0,70))}</div>`; return `<div class="http-card"><div><span class="http-method ${escD(r.method||'GET')}">${escD(r.method||'GET')}</span><span class="http-path">${escD(r.path||'')}</span></div>${extra}</div>`}).join('') } if(memStrings&&memStrings.length){ const indicators=memStrings.map(String).filter(s=>/^http/i.test(s)||/^\d{1,3}(\.\d{1,3}){3}$/.test(s)).slice(0,30); if(indicators.length) html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin:12px 0 6px">Extracted network indicators</div>`+indicators.map(s=>`<span class="mem-chip ${/^http/i.test(s)?'url':'ip'}">${escD(s.length>80?s.slice(0,80)+'…':s)}</span>`).join('') } list.innerHTML=html }
 function renderDnsD(dns){ const list=el2('dns-list'); if(!dns||!dns.length){list.innerHTML='<div class="empty">No DNS queries</div>';return} list.innerHTML=dns.slice(0,50).map(d=>rowD('◈',escD(typeof d==='object'?(d.query||JSON.stringify(d)):d))).join('') }
 
-// UPDATED renderCloudD (shows VALUES not just counts)
+// MODIFIED: renderCloudD - Uses allowlist approach, shows only cloud-specific fields
 function renderCloudD(cloud) {
   const c = el2('cloud-list');
 
@@ -930,124 +952,67 @@ function renderCloudD(cloud) {
     return;
   }
 
-  // Removed cloud_remote_ports, ebpf_remote_ports, cloud_remote_ips, ebpf_remote_ips from exclusion set
-  const duplicatedOrWrongSection = new Set([
-    'final_result',
-    'risk_level',
-    'runtime_verdict',
-    'runtime_score',
-    'feat_behavior_score',
-    'classification',
-    'prediction',
-    'prediction_value',
-    'risk_probability',
-    'ml_risk_probability',
-    'run_id',
-    'package',
-    'package_stem',
+  /*
+    Cloud Analysis displays only cloud/eBPF summary signals.
+    IPs belong to Network Analysis.
+    Ports, processes and accessed files belong to Runtime Behavior.
+  */
+  const rows = [
+    [
+      'Cloud Security Operations',
+      f.cloud_security_ops || f.ebpf_security_ops
+    ],
 
-    'processes',
-    'decoy_processes_spawned',
-    'runtime_processes_spawned',
-    'spawned_processes',
-    'ebpf_spawned_process',
+    [
+      'Cloud Network Operations',
+      f.cloud_network_ops || f.ebpf_network_ops
+    ],
 
-    'accessed_files',
-    'accessed_files_count',
-    'tmp_paths_accessed',
-    'ssh_paths_accessed',
-    'secret_paths_accessed',
-    'system_sensitive_paths_accessed',
-    'decoy_new_files_created',
-    'runtime_new_files_created',
+    [
+      'Cloud File Operations',
+      f.cloud_file_ops || f.ebpf_file_ops
+    ],
 
-    'remote_ports',
-    'dns_queries',
-    'http_requests',
-    'network_domains_count',
-    'network_dns_queries_count',
-    'network_http_requests_count',
-    'remote_ips',
+    [
+      'Cloud Process Operations',
+      f.cloud_process_ops || f.ebpf_process_ops
+    ],
 
-    'ebpf_home_dir_access_count',
-    'cloud_home_dir_access_count',
-    'home_dir_access_count',
+    [
+      'Cloud Network Activity',
+      f.cloud_network_activity || f.ebpf_network_activity
+    ],
 
-    'ebpf_other_dir_access_count',
-    'cloud_other_dir_access_count',
-    'other_dir_access_count',
+    [
+      'Cloud: C2 Port Suspected',
+      f.cloud_c2_port_suspected || f.ebpf_c2_port_suspected || f.c2_port_suspected || f.pattern_c2_communication
+    ],
 
-    'ebpf_etc_dir_access_count',
-    'cloud_etc_dir_access_count',
-    'etc_dir_access_count',
-  ]);
+    [
+      'Privilege Escalation Signal',
+      f.cloud_privilege_escalation || f.ebpf_privilege_escalation || f.privilege_escalation_signal || f.pattern_privilege_escalation
+    ],
 
-  const labelMap = {
-    ebpf_file_ops: 'Cloud File Operations',
-    cloud_file_ops: 'Cloud File Operations',
+    [
+      'Home Dir Access',
+      f.cloud_home_dir_access || f.ebpf_home_dir_access || f.home_dir_access || f.cloud_home_dir_access_count || f.ebpf_home_dir_access_count || f.home_dir_access_count || f.ebpf_accessed_home
+    ],
 
-    ebpf_network_ops: 'Cloud Network Operations',
-    cloud_network_ops: 'Cloud Network Operations',
+    [
+      'TMP Dir Access',
+      f.cloud_tmp_dir_access || f.ebpf_tmp_dir_access || f.tmp_dir_access || f.cloud_tmp_dir_access_count || f.ebpf_tmp_dir_access_count || f.tmp_dir_access_count || f.ebpf_accessed_tmp
+    ],
 
-    ebpf_security_ops: 'Cloud Security Operations',
-    cloud_security_ops: 'Cloud Security Operations',
+    [
+      'ETC Dir Access',
+      f.cloud_etc_dir_access || f.ebpf_etc_dir_access || f.etc_dir_access || f.cloud_etc_dir_access_count || f.ebpf_etc_dir_access_count || f.etc_dir_access_count || f.ebpf_accessed_etc
+    ],
 
-    ebpf_process_ops: 'Cloud Process Operations',
-    cloud_process_ops: 'Cloud Process Operations',
-
-    cloud_remote_ips: 'Remote IP Values',
-    ebpf_remote_ips: 'Remote IP Values',
-
-    cloud_remote_ports: 'Remote Port Values',
-    ebpf_remote_ports: 'Remote Port Values',
-
-    cloud_accessed_paths: 'Cloud Accessed Paths',
-    ebpf_accessed_paths: 'Cloud Accessed Paths',
-
-    cloud_processes: 'Cloud Processes',
-    ebpf_processes: 'Cloud Processes',
-
-    ebpf_network_activity: 'Cloud Network Activity',
-    ebpf_privilege_escalation: 'Privilege Escalation Signal',
-
-    ebpf_accessed_root: 'Root Directory Access',
-    ebpf_accessed_etc: 'ETC Directory Access',
-    ebpf_accessed_home: 'Home Directory Access',
-    ebpf_accessed_tmp: 'TMP Directory Access',
-    ebpf_accessed_ssh: 'SSH Directory Access',
-
-    pattern_c2_communication: 'C2 Communication Pattern',
-    pattern_process_injection: 'Process Injection Pattern',
-    pattern_malicious_probing: 'Malicious Probing Pattern',
-    pattern_privilege_escalation: 'Privilege Escalation Pattern',
-    pattern_file_locking: 'File Locking Pattern'
-  };
-
-  const rowsByLabel = new Map();
-
-  Object.entries(f).forEach(([key, value]) => {
-    if (duplicatedOrWrongSection.has(key)) return;
-    if (!isUsefulValue(value)) return;
-
-    const label = labelMap[key] || cleanFeatureName(key);
-
-    if (!rowsByLabel.has(label)) {
-      rowsByLabel.set(label, value);
-      return;
-    }
-
-    const oldValue = rowsByLabel.get(label);
-
-    if (Array.isArray(value) && value.length > (Array.isArray(oldValue) ? oldValue.length : 0)) {
-      rowsByLabel.set(label, value);
-    } else if (!isNaN(Number(value)) && Number(value) > Number(oldValue || 0)) {
-      rowsByLabel.set(label, value);
-    } else if (String(value).length > String(oldValue).length) {
-      rowsByLabel.set(label, value);
-    }
-  });
-
-  const rows = Array.from(rowsByLabel.entries());
+    [
+      'Other Dir Access',
+      f.cloud_other_dir_access || f.ebpf_other_dir_access || f.other_dir_access || f.cloud_other_dir_access_count || f.ebpf_other_dir_access_count || f.other_dir_access_count
+    ]
+  ].filter(([label, value]) => isUsefulValue(value));
 
   if (!rows.length) {
     c.innerHTML = '<div class="empty">No unique cloud/eBPF indicators detected</div>';
@@ -1066,11 +1031,15 @@ function renderCloudD(cloud) {
         cls = 'warn';
       }
 
-      if (v.length > 90) v = v.slice(0, 90) + '…';
+      if (v.length > 90) {
+        v = v.slice(0, 90) + '…';
+      }
 
       return `<div class="kv-card">
         <span class="k">${escD(label)}</span>
-        <span class="v ${cls}" title="${escD(displayRawValue(raw))}">${escD(v)}</span>
+        <span class="v ${cls}" title="${escD(displayRawValue(raw))}">
+          ${escD(v)}
+        </span>
       </div>`;
     }).join('') +
     '</div>';
@@ -1188,7 +1157,12 @@ function normalizePublicDoc(d) {
   runtime.dns = publicRuntime.dns_queries || [];
   runtime.http_requests = publicRuntime.http_requests || [];
   runtime.network_analysis.external_ips = (publicRuntime.remote_ips || []).map(ip => ({ ip }));
-  if (publicRuntime.remote_ips?.length) runtime.memory_strings = [...(runtime.memory_strings || []), ...publicRuntime.remote_ips];
+  
+  // REMOVED: The line that copies remote_ips to memory_strings to avoid duplicate display
+  // Remote IPs are already displayed under Network Analysis > External IPs.
+  // Do not copy them into memory_strings to avoid duplicate display.
+  // if (publicRuntime.remote_ips?.length) runtime.memory_strings = [...(runtime.memory_strings || []), ...publicRuntime.remote_ips];
+  
   runtime.dynamic_features = {
     remote_ports: publicRuntime.remote_ports,
     decoy_new_files_created: publicRuntime.new_files_created,
@@ -1206,25 +1180,43 @@ function normalizePublicDoc(d) {
     const types = honeySummary.types || [];
     runtime.honeytoken_hits = types.length ? types.map(t => `${t} (${count} hit${count === 1 ? "" : "s"})`) : [`honeytoken triggered (${count} hit${count === 1 ? "" : "s"})`];
   }
+  
+  // MODIFIED: cloud object - removed duplicate fields that belong elsewhere
   const cloud = {
     analysis_type: "firestore_dashboard_public",
     run_timestamp: toDateString(d.updated_at),
+
     dynamic_features: {
       ...(d.ebpf_features || {}),
       ...(d.public_ebpf_values || {}),
-      cloud_file_ops: d.public_ebpf_values?.cloud_file_ops || d.ebpf_features?.ebpf_file_ops || null,
-      cloud_network_ops: d.public_ebpf_values?.cloud_network_ops || d.ebpf_features?.ebpf_network_ops || null,
-      cloud_security_ops: d.public_ebpf_values?.cloud_security_ops || d.ebpf_features?.ebpf_security_ops || null,
-      cloud_process_ops: d.public_ebpf_values?.cloud_process_ops || d.ebpf_features?.ebpf_process_ops || null,
-      cloud_remote_ips_count: d.network_summary?.external_ips_count || d.ebpf_features?.ebpf_remote_ips_count || null,
-      // pass raw values for IPs/ports to be displayed as values
-      cloud_remote_ips: publicRuntime.remote_ips,
-      cloud_remote_ports: publicRuntime.remote_ports,
-      cloud_accessed_paths: publicRuntime.accessed_paths,
-      cloud_processes: publicRuntime.processes
+
+      cloud_file_ops:
+        d.public_ebpf_values?.cloud_file_ops ||
+        d.ebpf_features?.ebpf_file_ops ||
+        null,
+
+      cloud_network_ops:
+        d.public_ebpf_values?.cloud_network_ops ||
+        d.ebpf_features?.ebpf_network_ops ||
+        null,
+
+      cloud_security_ops:
+        d.public_ebpf_values?.cloud_security_ops ||
+        d.ebpf_features?.ebpf_security_ops ||
+        null,
+
+      cloud_process_ops:
+        d.public_ebpf_values?.cloud_process_ops ||
+        d.ebpf_features?.ebpf_process_ops ||
+        null
     },
-    ebpf_features: { ...(d.ebpf_features || {}), ...(d.public_ebpf_values || {}) }
+
+    ebpf_features: {
+      ...(d.ebpf_features || {}),
+      ...(d.public_ebpf_values || {})
+    }
   };
+  
   return { ml, runtime, cloud };
 }
 
