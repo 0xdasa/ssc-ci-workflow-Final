@@ -660,7 +660,6 @@ function cleanFeatureName(s){ return String(s).replace(/^num__/,'').replace(/^ca
 function setRiskBar(prob){ const pct=Math.round(Math.max(0,Math.min(1,Number(prob)||0))*100); const f=el2('ml-score-fill'); f.style.width=pct+'%'; f.style.background=pct>=70?'var(--red)':pct>=50?'var(--yellow)':'var(--green)' }
 function mlVerdict(ml){ if(ml.prediction===1||String(ml.prediction).toLowerCase()==='malicious') return 'MALICIOUS'; return 'BENIGN' }
 
-// UPDATED: updateMainBanner - uses only mlVerdict
 function updateMainBanner(ml, runtime, cloud) {
   const verdict = mlVerdict(ml);
 
@@ -705,7 +704,6 @@ function displayRawValue(v) {
   return String(v);
 }
 
-// --- UPDATED SHAP helpers (exactly as requested)---
 function normalizeModelFactors(ml) {
   const raw =
     ml?.top_shap ||
@@ -734,7 +732,6 @@ function normalizeModelFactors(ml) {
       }
 
       if (typeof item === "object" && item !== null) {
-        // supports older sanitize_for_firestore shape
         if (Array.isArray(item.items) && item.items.length >= 2) {
           return makeFactor(item.items[0], item.items[1]);
         }
@@ -806,7 +803,6 @@ function renderShapExplanation(ml) {
   `;
 }
 
-// UPDATED: renderKVFeatures - Risk Level default is '—'
 function renderKVFeatures(ml, runtime, cloud) {
   const c = el2('dynamic-features-container');
 
@@ -836,18 +832,43 @@ function renderKVFeatures(ml, runtime, cloud) {
 }
 
 function tierBadgeD(t){ const map={critical:'tier-critical',high:'tier-high',medium:'tier-medium',low:'tier-low'}; return `<span class="tier ${map[String(t).toLowerCase()]||'tier-low'}">${escD(t||'info')}</span>` }
-function renderFindingsD(findings,phases){ const list=el2('findings-list'); let html=''; if(phases&&Object.keys(phases).length){ const phaseRows=Object.entries(phases).filter(([n,e])=>(e||[]).length).map(([n,e])=>`<span class="mem-chip b64">${escD(cleanFeatureName(n))}: ${(e||[]).length}</span>`).join(''); if(phaseRows) html+=`<div class="row" style="display:block"><div style="color:var(--accent);font-family:var(--mono);font-size:11px;margin-bottom:6px">Behavior phase summary</div>${phaseRows}</div>`; } if(!findings||!findings.length){ list.innerHTML=html||'<div class="empty">No findings</div>'; return } html+=findings.map(f=>`<div class="row" style="flex-direction:column;gap:4px"><div style="display:flex;gap:8px;align-items:center">${tierBadgeD(f.tier)}<span>${escD(cleanFeatureName(f.label||''))}</span><span style="margin-left:auto;color:var(--text-dim)">+${escD(f.weight||0)}</span></div>${f.evidence?`<div style="color:var(--text-dim);font-size:10px;word-break:break-all">Evidence: ${escD(f.evidence)}</div>`:''}</div>`).join(''); list.innerHTML=html }
+
+// MODIFIED: New renderFindingsD function that uses phaseCounts
+function renderFindingsD(phaseCounts) {
+  const list = el2('findings-list');
+
+  const entries = Object.entries(phaseCounts || {})
+    .filter(([_, count]) => Number(count) > 0)
+    .sort((a, b) => Number(b[1]) - Number(a[1]));
+
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty">No behavior findings</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map(([phase, count], index) => {
+    const badge = index === 0
+      ? '<span class="tier tier-high">Strongest</span>'
+      : '<span class="tier tier-low">Observed</span>';
+
+    return `
+      <div class="row" style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center">
+          ${badge}
+          <span>${escD(cleanFeatureName(phase))}</span>
+        </div>
+        <span style="color:var(--accent);font-weight:700">${escD(count)}</span>
+      </div>
+    `;
+  }).join('');
+}
+
 function renderSimpleD(id,arr,icon='○'){ const list=el2(id); if(!arr||!arr.length){list.innerHTML='<div class="empty">No data</div>';return} list.innerHTML=arr.slice(0,60).map(x=>rowD(icon,escD(String(x)))).join('') }
 
-// MODIFIED: renderRuntimeEvidenceD - Processes and Accessed Files removed (they have dedicated cards)
 function renderRuntimeEvidenceD(runtime) {
   const c = el2('runtime-evidence-list');
   const df = runtime?.dynamic_features || {};
 
-  /*
-    Processes and Accessed Files are not displayed here
-    because they already have dedicated cards below.
-  */
   const rows = {
     'Remote Ports':
       df.remote_ports ||
@@ -938,7 +959,6 @@ function renderRuntimeEvidenceD(runtime) {
 function renderNetworkD(n,reqs,memStrings){ const list=el2('net-list'); if(!n&&!reqs?.length&&!memStrings?.length){list.innerHTML='<div class="empty">No network data</div>';return} const ips=[...new Map(((n&&n.external_ips)||[]).map(i=>[i.ip,i])).values()]; let html=`<div class="kv-grid" style="margin-bottom:8px"><div class="kv-card"><span class="k">Real domains</span><span class="v">${((n&&n.real_domains)||[]).length}</span></div><div class="kv-card"><span class="k">External IPs</span><span class="v">${ips.length}</span></div><div class="kv-card"><span class="k">DNS queries</span><span class="v">${(n&&n.total_dns_queries)||0}</span></div><div class="kv-card"><span class="k">HTTP requests</span><span class="v">${(reqs||[]).length||((n&&n.total_http_requests)||0)}</span></div></div>`; html+=ips.length?ips.map(ip=>`<div class="net-card"><div class="net-ip">${escD(ip.ip)}</div>${ip.country?`<div class="net-detail">Country: <span>${escD(ip.country)} ${escD(ip.city||'')}</span></div>`:''}${ip.isp?`<div class="net-detail">ISP: <span>${escD(ip.isp)}</span></div>`:''}${ip.org?`<div class="net-detail">Org: <span>${escD(ip.org)}</span></div>`:''}${ip.risk?`<div class="net-detail">Risk: <span>${escD(ip.risk)}</span></div>`:''}</div>`).join(''):'<div class="empty">No external IPs contacted</div>'; if(reqs&&reqs.length){ html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin:12px 0 6px">Request details</div>`; html+=reqs.slice(0,40).map(r=>{const a=r.analysis||{}; let extra=''; if(a.large_exfil_attempt)extra+=`<div class="http-tag">⚠ Large payload (${escD(a.payload_size)} bytes)</div>`; if(a.base64_decoded)extra+='<div class="http-tag">⚠ Base64 content</div>'; if(a.sensitive_json_keys)extra+=`<div class="http-tag">⚠ Sensitive keys: ${escD(a.sensitive_json_keys.join(', '))}</div>`; if(r.user_agent)extra+=`<div class="http-tag">UA: ${escD(String(r.user_agent).slice(0,70))}</div>`; return `<div class="http-card"><div><span class="http-method ${escD(r.method||'GET')}">${escD(r.method||'GET')}</span><span class="http-path">${escD(r.path||'')}</span></div>${extra}</div>`}).join('') } if(memStrings&&memStrings.length){ const indicators=memStrings.map(String).filter(s=>/^http/i.test(s)||/^\d{1,3}(\.\d{1,3}){3}$/.test(s)).slice(0,30); if(indicators.length) html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--accent);margin:12px 0 6px">Extracted network indicators</div>`+indicators.map(s=>`<span class="mem-chip ${/^http/i.test(s)?'url':'ip'}">${escD(s.length>80?s.slice(0,80)+'…':s)}</span>`).join('') } list.innerHTML=html }
 function renderDnsD(dns){ const list=el2('dns-list'); if(!dns||!dns.length){list.innerHTML='<div class="empty">No DNS queries</div>';return} list.innerHTML=dns.slice(0,50).map(d=>rowD('◈',escD(typeof d==='object'?(d.query||JSON.stringify(d)):d))).join('') }
 
-// MODIFIED: renderCloudD - Uses allowlist approach, shows only cloud-specific fields
 function renderCloudD(cloud) {
   const c = el2('cloud-list');
 
@@ -952,11 +972,6 @@ function renderCloudD(cloud) {
     return;
   }
 
-  /*
-    Cloud Analysis displays only cloud/eBPF summary signals.
-    IPs belong to Network Analysis.
-    Ports, processes and accessed files belong to Runtime Behavior.
-  */
   const rows = [
     [
       'Cloud Security Operations',
@@ -1045,12 +1060,12 @@ function renderCloudD(cloud) {
     '</div>';
 }
 
-// UPDATED renderAll
+// MODIFIED: renderAll uses runtime?.behavior_phase_counts
 function renderAll(ml, runtime, cloud) {
   updateMainBanner(ml, runtime, cloud);
 
   renderKVFeatures(ml, runtime, cloud);
-  renderFindingsD(runtime?.behavior_findings, runtime?.behavioral_phases);
+  renderFindingsD(runtime?.behavior_phase_counts);
 
   renderRuntimeEvidenceD(runtime);
 
@@ -1116,6 +1131,7 @@ function toDateString(value) {
   } catch { return String(value || "—"); }
 }
 
+// MODIFIED: normalizePublicDoc uses behavior_phase_counts
 function normalizePublicDoc(d) {
   const ml = {
     package: d.package || "—",
@@ -1140,12 +1156,17 @@ function normalizePublicDoc(d) {
     verdict: d.final_result || "BENIGN",
     risk_level: d.risk_level || "—",
     run_timestamp: toDateString(d.updated_at),
-    behavior_findings: [],
-    behavioral_phases: {},
+    behavior_phase_counts: d.behavior_phase_counts || {},
     honeytoken_hits: [],
     accessed_files: [],
     processes: [],
-    network_analysis: { real_domains: [], external_ips: [], total_dns_queries: d.network_summary?.dns_queries_count || 0, total_http_requests: d.network_summary?.http_requests_count || 0, total_unique_ips: d.network_summary?.external_ips_count || 0 },
+    network_analysis: {
+      real_domains: [],
+      external_ips: [],
+      total_dns_queries: d.network_summary?.dns_queries_count || 0,
+      total_http_requests: d.network_summary?.http_requests_count || 0,
+      total_unique_ips: d.network_summary?.external_ips_count || 0
+    },
     dns: [],
     http_requests: [],
     memory_strings: [],
@@ -1157,11 +1178,6 @@ function normalizePublicDoc(d) {
   runtime.dns = publicRuntime.dns_queries || [];
   runtime.http_requests = publicRuntime.http_requests || [];
   runtime.network_analysis.external_ips = (publicRuntime.remote_ips || []).map(ip => ({ ip }));
-  
-  // REMOVED: The line that copies remote_ips to memory_strings to avoid duplicate display
-  // Remote IPs are already displayed under Network Analysis > External IPs.
-  // Do not copy them into memory_strings to avoid duplicate display.
-  // if (publicRuntime.remote_ips?.length) runtime.memory_strings = [...(runtime.memory_strings || []), ...publicRuntime.remote_ips];
   
   runtime.dynamic_features = {
     remote_ports: publicRuntime.remote_ports,
@@ -1181,7 +1197,6 @@ function normalizePublicDoc(d) {
     runtime.honeytoken_hits = types.length ? types.map(t => `${t} (${count} hit${count === 1 ? "" : "s"})`) : [`honeytoken triggered (${count} hit${count === 1 ? "" : "s"})`];
   }
   
-  // MODIFIED: cloud object - removed duplicate fields that belong elsewhere
   const cloud = {
     analysis_type: "firestore_dashboard_public",
     run_timestamp: toDateString(d.updated_at),
