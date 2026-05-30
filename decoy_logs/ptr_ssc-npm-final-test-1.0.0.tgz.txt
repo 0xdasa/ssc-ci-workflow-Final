@@ -1,1 +1,0 @@
-decoy_logs/decoy_runs/ssc-npm-final-test-1.0.0_run89_sandbox.json

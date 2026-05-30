@@ -1,1 +1,0 @@
-decoy_logs/decoy_runs/threat-intel-collector-1.0.0_run170_sandbox.json
