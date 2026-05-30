@@ -602,19 +602,6 @@ def main():
         if isinstance(events, list) and len(events) > 0
     }
 
-    behavior_findings_count = sum(behavior_phase_counts.values())
-
-    strongest_detected_behavior = (
-        max(behavior_phase_counts, key=behavior_phase_counts.get)
-        if behavior_phase_counts
-        else None
-    )
-
-    strongest_detected_behavior_count = (
-        behavior_phase_counts.get(strongest_detected_behavior, 0)
-        if strongest_detected_behavior
-        else 0
-    )
 
     public_doc = {
         "run_id": run_id,
@@ -632,9 +619,6 @@ def main():
         "ebpf_features": compact_dict(ebpf_features),
         "public_runtime_values": public_runtime_values,
         "public_ebpf_values": public_ebpf_values,
-        "behavior_findings_count": behavior_findings_count,
-        "strongest_detected_behavior": strongest_detected_behavior,
-        "strongest_detected_behavior_count": strongest_detected_behavior_count,
         "behavior_phase_counts": behavior_phase_counts,
         "sources": {
             "ml_log": ml_source,
