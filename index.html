@@ -846,8 +846,12 @@ function renderFindingsD(phaseCounts) {
     return;
   }
 
-  list.innerHTML = entries.map(([phase, count], index) => {
-    const badge = index === 0
+  const maxCount = Math.max(...entries.map(([_, count]) => Number(count)));
+
+  list.innerHTML = entries.map(([phase, count]) => {
+    const isStrongest = Number(count) === maxCount;
+
+    const badge = isStrongest
       ? '<span class="tier tier-high">Strongest</span>'
       : '<span class="tier tier-low">Observed</span>';
 
