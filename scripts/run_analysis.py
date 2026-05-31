@@ -618,7 +618,6 @@ print(f"Saved ML log: decoy_logs/ml_logs/{log_name}.json")
 
 # ======================================
 # SAVE YARA + SEMGREP TO LOG
-# (already run before model above)
 # ======================================
 with open(f"decoy_logs/ml_logs/{log_name}.json") as f:
     ml_log_data = json.load(f)
