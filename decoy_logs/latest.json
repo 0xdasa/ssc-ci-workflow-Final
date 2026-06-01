@@ -1,63 +1,63 @@
 {
-    "run_id": "1780353169",
-    "package": "akatest-0.4.tar.gz",
-    "risk_probability": 0.6750969886779785,
-    "prediction": 1,
-    "timestamp": "2026-06-01T22:32:49.364572",
+    "run_id": "1780353579",
+    "package": "tenetur-hic-5.14.98.tgz",
+    "risk_probability": 0.0004021450295113027,
+    "prediction": 0,
+    "timestamp": "2026-06-01T22:39:39.541710",
     "top_shap": [
         [
-            "num__presence of installation script",
-            1.7649450302124023
-        ],
-        [
             "num__Number of lines in source code",
-            1.6831481456756592
-        ],
-        [
-            "num__yara_suspicious_imports_indicators",
-            0.8870806097984314
-        ],
-        [
-            "num__Number of lines in metadata",
-            -0.6204700469970703
+            -1.2223825454711914
         ],
         [
             "num__.md",
-            -0.6021692752838135
-        ],
-        [
-            "num__shannon mean string metadata",
-            -0.5217236280441284
-        ],
-        [
-            "num__shannon std ID source code",
-            -0.5098481774330139
+            -0.7562694549560547
         ],
         [
             "num__shannon mean ID metadata",
-            -0.46269968152046204
+            -0.6678889989852905
         ],
         [
-            "num__plus ratio mean",
-            -0.453288733959198
+            "num__yara_suspicious_imports_indicators",
+            -0.6614051461219788
         ],
         [
-            "num__eq ratio std",
-            -0.3544977307319641
+            "num__presence of installation script",
+            -0.5917741656303406
+        ],
+        [
+            "num__shannon mean ID source code",
+            -0.5829503536224365
+        ],
+        [
+            "num__homogeneous identifiers in metadata",
+            -0.5543093085289001
+        ],
+        [
+            "num__shannon mean string metadata",
+            -0.527821958065033
+        ],
+        [
+            "num__Number of lines in metadata",
+            -0.5239806175231934
+        ],
+        [
+            "num__shannon std string source code",
+            -0.5115017890930176
         ]
     ],
     "features": {
         "Package Repository": {
-            "0": "PyPI"
+            "0": "NPM"
         },
         "Package Name": {
-            "0": "tmpznddv4r6"
+            "0": "tmpsycpvnwz"
         },
         "Number of Words in source code": {
-            "0": 36
+            "0": 29599
         },
         "Number of lines in source code": {
-            "0": 13
+            "0": 1225
         },
         "plus ratio mean": {
             "0": 0.0
@@ -72,28 +72,28 @@
             "0": 0.0
         },
         "eq ratio mean": {
-            "0": 0.005194805194805195
+            "0": 2.663129195603393e-05
         },
         "eq ratio max": {
-            "0": 0.01038961038961039
+            "0": 0.0076077768385460695
         },
         "eq ratio std": {
-            "0": 0.0073465639603797145
+            "0": 0.0004484103539893529
         },
         "eq ratio q3": {
-            "0": 0.007792207792207792
+            "0": 0.0
         },
         "bracket ratio mean": {
-            "0": 0.0012987012987012987
+            "0": 7.4410962818330105e-06
         },
         "bracket ratio max": {
-            "0": 0.0025974025974025974
+            "0": 0.00422654268808115
         },
         "bracket ratio std": {
-            "0": 0.0018366409900949286
+            "0": 0.00017734179169414397
         },
         "bracket ratio q3": {
-            "0": 0.001948051948051948
+            "0": 0.0
         },
         "Number of base64 chunks in source code": {
             "0": 0
@@ -105,19 +105,19 @@
             "0": 1
         },
         "Number of Words in metadata": {
-            "0": 145
+            "0": 392
         },
         "Number of lines in metadata": {
-            "0": 43
+            "0": 339
         },
         "Number of base64 chunks in metadata": {
-            "0": 0
+            "0": 2
         },
         "Number of IP adress in metadata": {
             "0": 0
         },
         "Number of sospicious token in metadata": {
-            "0": 1
+            "0": 3
         },
         ".bat": {
             "0": 0
@@ -183,10 +183,10 @@
             "0": 0
         },
         ".js": {
-            "0": 0
+            "0": 568.0
         },
         ".json": {
-            "0": 0
+            "0": 1.0
         },
         ".key": {
             "0": 0
@@ -213,7 +213,7 @@
             "0": 0
         },
         ".py": {
-            "0": 3.0
+            "0": 0
         },
         ".rb": {
             "0": 0
@@ -237,7 +237,7 @@
             "0": 0
         },
         ".txt": {
-            "0": 4.0
+            "0": 0
         },
         ".xml": {
             "0": 0
@@ -282,7 +282,7 @@
             "0": 0
         },
         ".cfg": {
-            "0": 1.0
+            "0": 0
         },
         ".dcm": {
             "0": 0
@@ -393,82 +393,82 @@
             "0": 0
         },
         "presence of installation script": {
-            "0": 1
+            "0": 0
         },
         "shannon mean ID source code": {
-            "0": 0.05915661182388632
+            "0": 0.178974717896592
         },
         "shannon std ID source code": {
-            "0": 0.10789647222124668
+            "0": 0.1893318534251816
         },
         "shannon max ID source code": {
-            "0": 0.28325475327645266
+            "0": 0.75
         },
         "shannon q3 ID source code": {
-            "0": 0.0
+            "0": 0.29583638929116374
         },
         "shannon mean string source code": {
-            "0": 0.14838776064103046
+            "0": 0.18966340350194902
         },
         "shannon std string source code": {
-            "0": 0.22801116739139204
+            "0": 0.2162382379212384
         },
         "shannon max string source code": {
-            "0": 0.7987200910808968
+            "0": 0.7609640474436811
         },
         "shannon q3 string source code": {
-            "0": 0.2717822215997982
+            "0": 0.36096404744368116
         },
         "homogeneous identifiers in source code": {
-            "0": 16
+            "0": 52
         },
         "homogeneous strings in source code": {
-            "0": 10
+            "0": 12
         },
         "heteregeneous identifiers in source code": {
             "0": 0
         },
         "heterogeneous strings in source code": {
-            "0": 1
+            "0": 0
         },
         "URLs in source code": {
             "0": 1
         },
         "shannon mean ID metadata": {
-            "0": 0.07100920269575606
+            "0": 0.17705912710461552
         },
         "shannon std ID metadata": {
-            "0": 0.11025737647126066
+            "0": 0.12842687594334296
         },
         "shannon max ID metadata": {
-            "0": 0.32501121082417705
+            "0": 0.3096910973393819
         },
         "shannon q3 ID metadata": {
-            "0": 0.17467100896015975
+            "0": 0.2773890816706368
         },
         "shannon mean string metadata": {
-            "0": 0.14888935659311883
+            "0": 0.1044856157357398
         },
         "shannon std string metadata": {
-            "0": 0.18142555309887787
+            "0": 0.17972165763346729
         },
         "shannon max string metadata": {
-            "0": 0.612197222702993
+            "0": 0.6854752972273344
         },
         "shannon q3 string metadata": {
-            "0": 0.29583638929116374
+            "0": 0.2197484934607567
         },
         "homogeneous identifiers in metadata": {
-            "0": 29
+            "0": 15
         },
         "homogeneous strings in metadata": {
-            "0": 26
+            "0": 227
         },
         "heterogeneous strings in metadata": {
-            "0": 3
+            "0": 14
         },
         "URLs in metadata": {
-            "0": 0
+            "0": 4
         },
         "heteregeneous identifiers in metadata": {
             "0": 0

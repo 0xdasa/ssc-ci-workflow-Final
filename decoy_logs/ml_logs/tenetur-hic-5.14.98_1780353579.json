@@ -1,0 +1,491 @@
+{
+    "run_id": "1780353579",
+    "package": "tenetur-hic-5.14.98.tgz",
+    "risk_probability": 0.0004021450295113027,
+    "prediction": 0,
+    "timestamp": "2026-06-01T22:39:39.541710",
+    "top_shap": [
+        [
+            "num__Number of lines in source code",
+            -1.2223825454711914
+        ],
+        [
+            "num__.md",
+            -0.7562694549560547
+        ],
+        [
+            "num__shannon mean ID metadata",
+            -0.6678889989852905
+        ],
+        [
+            "num__yara_suspicious_imports_indicators",
+            -0.6614051461219788
+        ],
+        [
+            "num__presence of installation script",
+            -0.5917741656303406
+        ],
+        [
+            "num__shannon mean ID source code",
+            -0.5829503536224365
+        ],
+        [
+            "num__homogeneous identifiers in metadata",
+            -0.5543093085289001
+        ],
+        [
+            "num__shannon mean string metadata",
+            -0.527821958065033
+        ],
+        [
+            "num__Number of lines in metadata",
+            -0.5239806175231934
+        ],
+        [
+            "num__shannon std string source code",
+            -0.5115017890930176
+        ]
+    ],
+    "features": {
+        "Package Repository": {
+            "0": "NPM"
+        },
+        "Package Name": {
+            "0": "tmpsycpvnwz"
+        },
+        "Number of Words in source code": {
+            "0": 29599
+        },
+        "Number of lines in source code": {
+            "0": 1225
+        },
+        "plus ratio mean": {
+            "0": 0.0
+        },
+        "plus ratio max": {
+            "0": 0.0
+        },
+        "plus ratio std": {
+            "0": 0.0
+        },
+        "plus ratio q3": {
+            "0": 0.0
+        },
+        "eq ratio mean": {
+            "0": 2.663129195603393e-05
+        },
+        "eq ratio max": {
+            "0": 0.0076077768385460695
+        },
+        "eq ratio std": {
+            "0": 0.0004484103539893529
+        },
+        "eq ratio q3": {
+            "0": 0.0
+        },
+        "bracket ratio mean": {
+            "0": 7.4410962818330105e-06
+        },
+        "bracket ratio max": {
+            "0": 0.00422654268808115
+        },
+        "bracket ratio std": {
+            "0": 0.00017734179169414397
+        },
+        "bracket ratio q3": {
+            "0": 0.0
+        },
+        "Number of base64 chunks in source code": {
+            "0": 0
+        },
+        "Number of IP adress in source code": {
+            "0": 0
+        },
+        "Number of sospicious token in source code": {
+            "0": 1
+        },
+        "Number of Words in metadata": {
+            "0": 392
+        },
+        "Number of lines in metadata": {
+            "0": 339
+        },
+        "Number of base64 chunks in metadata": {
+            "0": 2
+        },
+        "Number of IP adress in metadata": {
+            "0": 0
+        },
+        "Number of sospicious token in metadata": {
+            "0": 3
+        },
+        ".bat": {
+            "0": 0
+        },
+        ".bz2": {
+            "0": 0
+        },
+        ".c": {
+            "0": 0
+        },
+        ".cert": {
+            "0": 0
+        },
+        ".conf": {
+            "0": 0
+        },
+        ".cpp": {
+            "0": 0
+        },
+        ".crt": {
+            "0": 0
+        },
+        ".css": {
+            "0": 0
+        },
+        ".csv": {
+            "0": 0
+        },
+        ".deb": {
+            "0": 0
+        },
+        ".erb": {
+            "0": 0
+        },
+        ".gemspec": {
+            "0": 0
+        },
+        ".gif": {
+            "0": 0
+        },
+        ".gz": {
+            "0": 0
+        },
+        ".h": {
+            "0": 0
+        },
+        ".html": {
+            "0": 0
+        },
+        ".ico": {
+            "0": 0
+        },
+        ".ini": {
+            "0": 0
+        },
+        ".jar": {
+            "0": 0
+        },
+        ".java": {
+            "0": 0
+        },
+        ".jpg": {
+            "0": 0
+        },
+        ".js": {
+            "0": 568.0
+        },
+        ".json": {
+            "0": 1.0
+        },
+        ".key": {
+            "0": 0
+        },
+        ".m4v": {
+            "0": 0
+        },
+        ".markdown": {
+            "0": 0
+        },
+        ".md": {
+            "0": 1.0
+        },
+        ".pdf": {
+            "0": 0
+        },
+        ".pem": {
+            "0": 0
+        },
+        ".png": {
+            "0": 0
+        },
+        ".ps": {
+            "0": 0
+        },
+        ".py": {
+            "0": 0
+        },
+        ".rb": {
+            "0": 0
+        },
+        ".rpm": {
+            "0": 0
+        },
+        ".rst": {
+            "0": 0
+        },
+        ".sh": {
+            "0": 0
+        },
+        ".svg": {
+            "0": 0
+        },
+        ".toml": {
+            "0": 0
+        },
+        ".ttf": {
+            "0": 0
+        },
+        ".txt": {
+            "0": 0
+        },
+        ".xml": {
+            "0": 0
+        },
+        ".yaml": {
+            "0": 0
+        },
+        ".yml": {
+            "0": 0
+        },
+        ".eot": {
+            "0": 0
+        },
+        ".exe": {
+            "0": 0
+        },
+        ".jpeg": {
+            "0": 0
+        },
+        ".properties": {
+            "0": 0
+        },
+        ".sql": {
+            "0": 0
+        },
+        ".swf": {
+            "0": 0
+        },
+        ".tar": {
+            "0": 0
+        },
+        ".woff": {
+            "0": 0
+        },
+        ".woff2": {
+            "0": 0
+        },
+        ".aac": {
+            "0": 0
+        },
+        ".bmp": {
+            "0": 0
+        },
+        ".cfg": {
+            "0": 0
+        },
+        ".dcm": {
+            "0": 0
+        },
+        ".dll": {
+            "0": 0
+        },
+        ".doc": {
+            "0": 0
+        },
+        ".flac": {
+            "0": 0
+        },
+        ".flv": {
+            "0": 0
+        },
+        ".ipynb": {
+            "0": 0
+        },
+        ".m4a": {
+            "0": 0
+        },
+        ".mid": {
+            "0": 0
+        },
+        ".mkv": {
+            "0": 0
+        },
+        ".mp3": {
+            "0": 0
+        },
+        ".mp4": {
+            "0": 0
+        },
+        ".mpg": {
+            "0": 0
+        },
+        ".ogg": {
+            "0": 0
+        },
+        ".otf": {
+            "0": 0
+        },
+        ".pickle": {
+            "0": 0
+        },
+        ".pkl": {
+            "0": 0
+        },
+        ".psd": {
+            "0": 0
+        },
+        ".pxd": {
+            "0": 0
+        },
+        ".pxi": {
+            "0": 0
+        },
+        ".pyc": {
+            "0": 0
+        },
+        ".pyx": {
+            "0": 0
+        },
+        ".r": {
+            "0": 0
+        },
+        ".rtf": {
+            "0": 0
+        },
+        ".so": {
+            "0": 0
+        },
+        ".sqlite": {
+            "0": 0
+        },
+        ".tif": {
+            "0": 0
+        },
+        ".tp": {
+            "0": 0
+        },
+        ".wav": {
+            "0": 0
+        },
+        ".webp": {
+            "0": 0
+        },
+        ".whl": {
+            "0": 0
+        },
+        ".xcf": {
+            "0": 0
+        },
+        ".xz": {
+            "0": 0
+        },
+        ".zip": {
+            "0": 0
+        },
+        ".mov": {
+            "0": 0
+        },
+        ".wasm": {
+            "0": 0
+        },
+        ".webm": {
+            "0": 0
+        },
+        "presence of installation script": {
+            "0": 0
+        },
+        "shannon mean ID source code": {
+            "0": 0.178974717896592
+        },
+        "shannon std ID source code": {
+            "0": 0.1893318534251816
+        },
+        "shannon max ID source code": {
+            "0": 0.75
+        },
+        "shannon q3 ID source code": {
+            "0": 0.29583638929116374
+        },
+        "shannon mean string source code": {
+            "0": 0.18966340350194902
+        },
+        "shannon std string source code": {
+            "0": 0.2162382379212384
+        },
+        "shannon max string source code": {
+            "0": 0.7609640474436811
+        },
+        "shannon q3 string source code": {
+            "0": 0.36096404744368116
+        },
+        "homogeneous identifiers in source code": {
+            "0": 52
+        },
+        "homogeneous strings in source code": {
+            "0": 12
+        },
+        "heteregeneous identifiers in source code": {
+            "0": 0
+        },
+        "heterogeneous strings in source code": {
+            "0": 0
+        },
+        "URLs in source code": {
+            "0": 1
+        },
+        "shannon mean ID metadata": {
+            "0": 0.17705912710461552
+        },
+        "shannon std ID metadata": {
+            "0": 0.12842687594334296
+        },
+        "shannon max ID metadata": {
+            "0": 0.3096910973393819
+        },
+        "shannon q3 ID metadata": {
+            "0": 0.2773890816706368
+        },
+        "shannon mean string metadata": {
+            "0": 0.1044856157357398
+        },
+        "shannon std string metadata": {
+            "0": 0.17972165763346729
+        },
+        "shannon max string metadata": {
+            "0": 0.6854752972273344
+        },
+        "shannon q3 string metadata": {
+            "0": 0.2197484934607567
+        },
+        "homogeneous identifiers in metadata": {
+            "0": 15
+        },
+        "homogeneous strings in metadata": {
+            "0": 227
+        },
+        "heterogeneous strings in metadata": {
+            "0": 14
+        },
+        "URLs in metadata": {
+            "0": 4
+        },
+        "heteregeneous identifiers in metadata": {
+            "0": 0
+        }
+    },
+    "static_analysis": {
+        "yara_credential_theft_indicators": "False",
+        "yara_exfiltration_indicators": "False",
+        "yara_shell_execution_indicators": "False",
+        "yara_command_execution_indicators": "False",
+        "yara_obfuscation_indicators": "False",
+        "yara_persistence_indicators": "False",
+        "yara_install_hook_indicators": "False",
+        "yara_suspicious_imports_indicators": "False",
+        "semgrep_has_exec_call": "False",
+        "semgrep_has_subprocess": "False",
+        "semgrep_has_network_request": "False",
+        "semgrep_has_secret_access": "False"
+    }
+}
