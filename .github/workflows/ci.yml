@@ -99,7 +99,7 @@ jobs:
     
       
       # =========================
-      # SANDBOX — ALL PACKAGES
+      # SANDBOX 
       # =========================
       - name: Build Sandbox Image
         if: steps.detect_pkg.outputs.skip_pipeline == 'false'
@@ -176,7 +176,7 @@ jobs:
           fi
     
       # =========================
-      # ML GATE + YARA + SEMGREP — ALL PACKAGES
+      # ML GATE + YARA + SEMGREP
       # =========================
       - name: ML Security Gate
         id: ml_scan
@@ -238,7 +238,7 @@ jobs:
           python scripts/export_to_firestore.py
 
       # =========================
-      # COMMIT — with conflict handling
+      # COMMIT 
       # =========================
       - name: Commit Results
         if: steps.detect_pkg.outputs.skip_pipeline == 'false'
