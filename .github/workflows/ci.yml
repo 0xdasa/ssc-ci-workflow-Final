@@ -107,6 +107,8 @@ jobs:
           docker build -t ssc-sandbox -f sandbox/Dockerfile .
 
       - name: Run Dynamic Analysis
+        if: steps.detect_pkg.outputs.skip_pipeline == 'false'
+
         run: |
           # Start container in background
           docker run --privileged \
