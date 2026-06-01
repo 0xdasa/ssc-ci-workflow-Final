@@ -142,7 +142,7 @@ jobs:
           ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ubuntu@35.172.190.4 \
             "echo '${{ steps.detect_pkg.outputs.package_name }}:${{ github.run_number }}' > /home/ubuntu/DanahCopy5/.ebpf_pending"
 
-          echo "EC2 signaled ✅"
+          echo "EC2 signaled "
                  
       - name: Wait for AWS EC2 eBPF Results
         if: steps.detect_pkg.outputs.skip_pipeline == 'false'
@@ -163,7 +163,7 @@ jobs:
               scp -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no \
                 ubuntu@35.172.190.4:/home/ubuntu/DanahCopy5/decoy_logs/decoy_runs/${PKG_STEM}_run${RUN_NUM}_ebpf.json \
                 decoy_logs/decoy_runs/${PKG_STEM}_run${RUN_NUM}_ebpf.json
-              echo "eBPF results received ✅"
+              echo "eBPF results received "
               EBPF_RECEIVED=true
               break
             fi
@@ -172,7 +172,7 @@ jobs:
           done
           git rm -f .ebpf_pending 2>/dev/null || true
           if [ "$EBPF_RECEIVED" = "false" ]; then
-            echo "⚠️ WARNING: eBPF results not received — continuing without"
+            echo " WARNING: eBPF results not received — continuing without"
           fi
     
       # =========================
