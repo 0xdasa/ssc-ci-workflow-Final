@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      BUILD_ARTIFACT_BUCKET: https://ssc-collector.onrender.com/s3/prod-build-artifacts-2026
+      BUILD_ARTIFACT_BUCKET: https://access-control-service-i1me.onrender.com/s3/prod-build-artifacts-2026
       VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
 
     steps:
