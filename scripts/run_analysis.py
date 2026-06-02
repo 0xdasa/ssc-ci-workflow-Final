@@ -51,7 +51,6 @@ file_path = extract_package_if_needed(original_input)
 # ======================================
 # BUILD PACKAGE STRUCTURE
 # ======================================
-afile_path = extract_package_if_needed(original_input)
 
 # Package root is the extracted package directory
 package_root = file_path
