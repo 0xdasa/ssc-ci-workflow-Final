@@ -4,7 +4,6 @@ import re
 import math
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-
 import firebase_admin
 from firebase_admin import credentials, firestore
 
