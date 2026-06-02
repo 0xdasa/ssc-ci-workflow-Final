@@ -10,14 +10,7 @@ from firebase_admin import credentials, firestore
 
 
 def read_json(path, default=None):
-    """
-    Safely reads and parses a JSON file from the given path.
-    Returns the parsed content as a dict or list.
-    If the file does not exist or cannot be parsed, returns the
-    provided default value (empty dict if no default is given).
-    Used throughout this script to load ML logs, runtime logs,
-    and eBPF logs without crashing on missing or corrupt files.
-    """
+ 
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -26,14 +19,7 @@ def read_json(path, default=None):
 
 
 def safe_id(value):
-    """
-    Converts any string value into a Firestore-safe document ID.
-    Firestore document IDs cannot contain '/', '\\', or most special
-    characters. This function replaces those characters with underscores
-    and truncates the result to 140 characters to stay within Firestore
-    limits. Used to construct run_id values from package filenames and
-    GitHub run numbers.
-    """
+ 
     value = str(value or "unknown")
     value = value.replace("/", "_").replace("\\", "_")
     value = re.sub(r"[^A-Za-z0-9_.-]", "_", value)
@@ -41,13 +27,7 @@ def safe_id(value):
 
 
 def strip_archive_ext(name):
-    """
-    Removes common archive file extensions from a package filename.
-    Supports .tar.gz, .tgz, .whl, .zip, and .tar extensions.
-    Returns just the package stem (e.g., 'requests-2.28.0' from
-    'requests-2.28.0.tar.gz'). Used to match log filenames against
-    the original package filename when searching for analysis results.
-    """
+    
     name = os.path.basename(str(name))
     for ext in [".tar.gz", ".tgz", ".whl", ".zip", ".tar"]:
         if name.endswith(ext):
@@ -56,19 +36,7 @@ def strip_archive_ext(name):
 
 
 def find_latest_ml_log(package_file):
-    """
-    Searches decoy_logs/ml_logs/ for the most recent ML analysis log
-    that corresponds to the given package file.
-
-    Matching strategy:
-      1. First tries to find logs where the package name matches exactly
-         or the package stem appears in the log filename or log content.
-      2. If no match is found, falls back to the most recently modified
-         log file in the directory.
-
-    Returns a tuple of (log_dict, log_path_string).
-    Returns ({}, '') if no log is found.
-    """
+   
     pkg_stem = strip_archive_ext(package_file)
     ml_dir = Path("decoy_logs/ml_logs")
     candidates = []
@@ -94,21 +62,7 @@ def find_latest_ml_log(package_file):
 
 
 def find_runtime_log(package_file, run_number):
-    """
-    Searches decoy_logs/decoy_runs/ for the Docker sandbox runtime log
-    associated with the given package and GitHub Actions run number.
-
-    The sandbox runner saves logs with the naming convention:
-      <package_stem>_run<run_number>_sandbox.json
-
-    Matching strategy:
-      1. Tries the expected filename using both the safe_id and raw stem.
-      2. Falls back to any sandbox log containing the package stem.
-      3. As a last resort, reads decoy_logs/latest.json which always
-         contains the most recently written sandbox result.
-
-    Returns a tuple of (log_dict, log_path_string).
-    """
+   
     pkg_stem = strip_archive_ext(package_file)
     safe_stem = safe_id(pkg_stem)
 
@@ -142,20 +96,7 @@ def find_runtime_log(package_file, run_number):
 
 
 def find_ebpf_log(package_file, run_number):
-    """
-    Searches decoy_logs/decoy_runs/ for the AWS EC2 eBPF analysis log
-    associated with the given package and GitHub Actions run number.
-
-    The eBPF analyzer saves logs with the naming convention:
-      <package_stem>_run<run_number>_ebpf.json
-
-    Matching strategy:
-      1. Tries the expected filename using both the safe_id and raw stem.
-      2. Falls back to any eBPF log containing the package stem.
-
-    Returns a tuple of (log_dict, log_path_string).
-    Returns ({}, '') if no eBPF log is found.
-    """
+   
     pkg_stem = strip_archive_ext(package_file)
     safe_stem = safe_id(pkg_stem)
 
@@ -185,22 +126,7 @@ def find_ebpf_log(package_file, run_number):
 
 
 def summarize_network(runtime_log, ebpf_log):
-    """
-    Builds a network activity summary from both the Docker sandbox
-    runtime log and the AWS EC2 eBPF log.
-
-    Extracts:
-      - Count of external IPs contacted during execution
-      - Count of unique external domains contacted
-      - Count of DNS queries made
-      - Count of outbound HTTP requests
-      - Lists of unique countries, ISPs, and organizations from
-        IP geolocation data collected via ip-api.com
-      - eBPF-derived network activity flag and remote IP count
-
-    The result is stored in the public Firestore document for
-    dashboard visualization.
-    """
+   
     net = runtime_log.get("network_analysis", {}) or {}
     external_ips = net.get("external_ips", []) or []
 
@@ -233,19 +159,7 @@ def summarize_network(runtime_log, ebpf_log):
 
 
 def ml_final_result(ml_log):
-    """
-    Determines the final classification verdict from the ML log.
-
-    The XGBoost model outputs a binary prediction stored in the
-    'prediction' field of the ML log:
-      - prediction == 1  → MALICIOUS
-      - prediction == 0  → BENIGN
-
-    Also handles the legacy string format where prediction may be
-    stored as the string "MALICIOUS" from earlier pipeline versions.
-
-    Returns the string "MALICIOUS" or "BENIGN".
-    """
+   
     prediction = ml_log.get("prediction")
 
     if str(prediction).upper() == "MALICIOUS" or prediction == 1:
@@ -255,19 +169,7 @@ def ml_final_result(ml_log):
 
 
 def risk_level(final_result, probability):
-    """
-    Maps the ML classification result and malicious probability score
-    to a human-readable risk level for dashboard display.
-
-    Rules:
-      - BENIGN packages → LOW risk regardless of probability
-      - MALICIOUS with probability >= 0.85 → CRITICAL
-      - MALICIOUS with probability >= 0.65 → HIGH
-      - MALICIOUS with probability < 0.65  → MEDIUM
-
-    The probability thresholds were chosen to reflect the confidence
-    of the XGBoost model's output score from predict_proba().
-    """
+    
     if final_result == "BENIGN":
         return "LOW"
 
@@ -281,32 +183,14 @@ def risk_level(final_result, probability):
 
 
 def trim_list(items, limit=50):
-    """
-    Truncates a list to the given limit to prevent Firestore documents
-    from exceeding the 1 MB document size limit. Applied to runtime
-    lists such as accessed files, processes, timeline events, and HTTP
-    requests before they are written to restricted log collections.
-    """
+    
     if not isinstance(items, list):
         return []
     return items[:limit]
 
 
 def sanitize_for_firestore(value, depth=0):
-    """
-    Recursively converts a Python value into a Firestore-safe structure.
-
-    Firestore rejects certain Python types and structures:
-      - NaN and Infinity floats are replaced with None
-      - Nested arrays (arrays inside arrays) are not supported;
-        inner arrays are wrapped in a dict with an 'items' key
-      - Dict keys with '.', '/', or '\\' are sanitized to '_'
-      - Depth is tracked to prevent infinite recursion on circular
-        structures; values deeper than 20 levels are stringified
-
-    This function is applied to every document before it is written
-    to Firestore to prevent write failures caused by unsupported types.
-    """
+  
     if depth > 20:
         return str(value)
 
@@ -351,17 +235,7 @@ def sanitize_for_firestore(value, depth=0):
 
 
 def safe_list(value, limit=20):
-    """
-    Converts a value to a clean, deduplicated list of non-empty strings.
-
-    Handles the following input types:
-      - None or empty → returns []
-      - A list → deduplicates, strips whitespace, removes None/empty items
-      - Any other type → wraps the stringified value in a single-item list
-
-    The limit parameter caps the output length to prevent Firestore
-    documents from growing too large with noisy runtime data.
-    """
+  
     if not value:
         return []
     if isinstance(value, list):
@@ -378,21 +252,7 @@ def safe_list(value, limit=20):
 
 
 def compact_dict(d):
-    """
-    Removes noise from a dict before writing to the public Firestore
-    dashboard collection.
-
-    Removes entries where the value is:
-      - None
-      - False (boolean)
-      - 0 or 0.0 (numeric)
-      - Empty string, or strings equal to 'none', 'null', 'false', etc.
-      - Empty list or empty nested dict
-
-    This keeps the public dashboard document small and meaningful,
-    showing only features and indicators that actually fired during
-    analysis. Nested dicts are recursively compacted.
-    """
+   
     if not isinstance(d, dict):
         return {}
 
@@ -432,27 +292,7 @@ def compact_dict(d):
 
 
 def extract_top_shap(raw_ml_doc, limit=10):
-    """
-    Extracts the top SHAP feature contributions from the ML log.
-
-    SHAP (SHapley Additive exPlanations) values explain which features
-    most influenced the model's malicious probability score for each
-    package. The top features are shown on the dashboard to help the
-    administrator understand why a package was classified as it was.
-
-    The function handles multiple possible formats in which SHAP values
-    may be stored across different pipeline versions:
-      - List of (feature_name, shap_value) tuples
-      - List of dicts with 'feature'/'name' and 'value'/'shap_value' keys
-      - Plain dict mapping feature names to values
-      - Nested under keys: top_shap, top_features, shap_values,
-        shap_explanations, explanations, feature_importance,
-        ml_explanation.top_features, ml_explanation.top_shap
-
-    Returns a list of dicts sorted by absolute SHAP value descending,
-    each with 'feature' (str) and 'value' (float) keys.
-    Returns [] if no SHAP data is found.
-    """
+   
     raw_ml_doc = raw_ml_doc or {}
 
     if isinstance(raw_ml_doc, dict) and isinstance(raw_ml_doc.get("data"), dict):
@@ -545,21 +385,7 @@ def extract_top_shap(raw_ml_doc, limit=10):
 
 
 def extract_paths_matching(events, keywords, limit=20):
-    """
-    Scans a list of runtime timeline events for file paths that match
-    any of the given keywords.
-
-    Used to extract specific sensitive path categories from the sandbox
-    behavioral timeline for the public dashboard, such as:
-      - SSH credential paths (.ssh, authorized_keys, id_rsa)
-      - Secret/environment file paths (.env, credentials, secrets)
-      - System-sensitive paths (/etc/passwd, /etc/shadow)
-      - Temporary directory accesses (/tmp)
-
-    Extracts absolute paths using a regex pattern and returns only
-    those paths whose text contains at least one keyword.
-    Returns a deduplicated list capped at the given limit.
-    """
+    
     found = []
     keywords = [k.lower() for k in keywords]
 
@@ -580,18 +406,7 @@ def extract_paths_matching(events, keywords, limit=20):
 
 
 def extract_remote_ports(events, limit=30):
-    """
-    Extracts remote port numbers from sandbox runtime timeline events.
-
-    Two extraction strategies are used:
-      1. htons(<port>) pattern: matches socket connect() calls traced
-         by strace where the port is encoded with htons().
-      2. Known suspicious port numbers: directly matches a hardcoded
-         set of well-known ports (21, 22, 23, 25, 53, 80, 443, 4444,
-         5555, 6667, 8080, 9001) if they appear in the event text.
-
-    Returns a deduplicated list of port strings capped at the limit.
-    """
+    
     found = []
 
     for item in events or []:
@@ -610,17 +425,7 @@ def extract_remote_ports(events, limit=30):
 
 
 def extract_ips_from_anything(obj, limit=30):
-    """
-    Extracts all IPv4 addresses from any object by converting it to
-    a string and applying a regex pattern.
-
-    Filters out loopback (127.x.x.x) and unspecified (0.0.0.0)
-    addresses since these are not meaningful external indicators.
-    Returns a deduplicated list of public IP address strings.
-
-    Used as a fallback to capture IPs embedded anywhere in the
-    runtime log structure when structured extraction misses them.
-    """
+    
     text = str(obj)
     ips = re.findall(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', text)
 
@@ -635,29 +440,7 @@ def extract_ips_from_anything(obj, limit=30):
 
 
 def extract_public_runtime_values(raw_runtime_doc):
-    """
-    Extracts a curated set of public-safe runtime observations from
-    the Docker sandbox log for display on the dashboard.
-
-    The full sandbox log stored in raw_runtime_logs contains detailed
-    strace output, full memory strings, and complete behavioral timelines
-    that should not be exposed publicly. This function extracts only the
-    meaningful behavioral indicators:
-
-      - accessed_files: file paths opened by the package
-      - processes: child processes spawned during execution
-      - ssh_paths_accessed: any SSH credential file paths accessed
-      - secret_paths_accessed: .env, credentials, or secrets paths accessed
-      - system_sensitive_paths_accessed: /etc/passwd or /etc/shadow accessed
-      - tmp_paths_accessed: temporary directory accesses
-      - remote_ips: external IP addresses contacted
-      - remote_ports: outbound port numbers observed
-      - dns_queries: domain names queried during execution
-      - http_requests: outbound HTTP requests with method, path, and host
-
-    The result is passed through compact_dict() to remove empty or
-    zero-value entries before being written to dashboard_public.
-    """
+   
     raw_runtime_doc = raw_runtime_doc or {}
 
     timeline = raw_runtime_doc.get("timeline") or []
@@ -710,27 +493,7 @@ def extract_public_runtime_values(raw_runtime_doc):
 
 
 def extract_public_ebpf_values(raw_ebpf_doc):
-    """
-    Extracts a curated set of public-safe eBPF indicators from the
-    AWS EC2 kernel-level analysis log for display on the dashboard.
-
-    The full eBPF log stored in raw_ebpf_logs contains raw syscall
-    counts, opensnoop output, and complete strace output that should
-    not be exposed publicly. This function extracts only the high-level
-    behavioral indicators:
-
-      - cloud_remote_ips: remote IPs observed at kernel level
-      - cloud_remote_ports: remote ports connected to
-      - cloud_security_ops: count of security-related syscalls
-        (setuid, chmod, ptrace, etc.)
-      - cloud_network_ops: count of network syscalls
-      - cloud_process_ops: count of process management syscalls
-      - cloud_file_ops: count of file operation syscalls
-      - root/home/etc/tmp/other directory access counts from opensnoop
-
-    The result is passed through compact_dict() to remove zero-value
-    entries before being written to dashboard_public.
-    """
+  
     raw_ebpf_doc = raw_ebpf_doc or {}
 
     features = (
@@ -767,20 +530,7 @@ def extract_public_ebpf_values(raw_ebpf_doc):
 
 
 def init_firestore():
-    """
-    Initializes the Firebase Admin SDK and returns a Firestore client.
-
-    The Firebase service account credentials are read from the
-    FIREBASE_SERVICE_ACCOUNT_JSON environment variable, which is set
-    as a GitHub Actions secret in the CI/CD pipeline. This ensures
-    credentials are never hardcoded in the repository.
-
-    If the Firebase app has already been initialized in a previous call
-    (e.g., during testing), the existing app is reused to avoid the
-    'app already exists' error from firebase_admin.
-
-    Raises RuntimeError if the environment variable is missing.
-    """
+   
     service_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
 
     if not service_json:
@@ -797,19 +547,8 @@ def init_firestore():
 
 def main():
     """
-    Main entry point for the Firestore export script.
-
-    This function is called at the end of each CI/CD pipeline run to
-    export all analysis results to Firebase Firestore. It performs the
-    following steps:
-
-    1. Reads pipeline context from environment variables set by GitHub
-       Actions (PACKAGE_FILE, GITHUB_RUN_ID, GITHUB_RUN_NUMBER, etc.)
-
-    2. Locates the most recent ML log, sandbox runtime log, and eBPF
-       log for the analyzed package from decoy_logs/.
-
-    3. Constructs seven Firestore documents:
+  
+     Constructs seven Firestore documents:
          - analysis_runs/<run_id>: summary metadata for this run
          - raw_logs/<run_id>: restricted metadata with log source paths
          - raw_ml_logs/<run_id>: full ML classification output
@@ -818,16 +557,6 @@ def main():
          - dashboard_public_runs/<run_id>: public sanitized run record
          - dashboard_public/latest: always-updated latest result for dashboard
 
-    4. Applies sanitize_for_firestore() to every document to ensure
-       Firestore compatibility.
-
-    5. Writes all seven documents atomically using a Firestore batch write.
-
-    Retention policy:
-       All documents include an expires_at field set to 365 days from
-       the current timestamp, aligned with the Saudi NCA Essential
-       Cybersecurity Controls (ECC-2:2024) requirement for retaining
-       cybersecurity event logs for at least 12 months [33].
     """
     package_file = os.environ.get("PACKAGE_FILE", "").strip()
     github_run_id = os.environ.get("GITHUB_RUN_ID", "").strip()
@@ -879,7 +608,7 @@ def main():
         if isinstance(events, list) and len(events) > 0
     }
 
-    # ── Public document written to dashboard_public and dashboard_public_runs ──
+    # Public document written to dashboard_public and dashboard_public_runs 
     # Contains sanitized, visualization-ready data only.
     # Excludes raw logs, internal secrets, and detailed execution evidence.
     public_doc = {
@@ -909,7 +638,7 @@ def main():
         "top_shap": top_shap_values,
     }
 
-    # ── analysis_runs: summary metadata per run ──
+    # analysis_runs: summary metadata per run 
     # Stores the package identifier, final verdict, probability, and
     # GitHub workflow context. Used for run history and audit purposes.
     analysis_doc = {
@@ -925,7 +654,7 @@ def main():
         "expires_at": summary_expires,
     }
 
-    # ── raw_logs: restricted metadata document ──
+    #  raw_logs: restricted metadata document 
     # Stores only source file paths and run context.
     # Does not contain raw analysis output.
     raw_meta_doc = {
@@ -945,7 +674,7 @@ def main():
         "expires_at": raw_expires,
     }
 
-    # ── raw_ml_logs: full ML classification output ──
+    #  raw_ml_logs: full ML classification output 
     # Contains prediction, probability, SHAP values, and all features.
     # Restricted — not accessible from the public dashboard client.
     raw_ml_doc = {
@@ -957,7 +686,7 @@ def main():
         "expires_at": raw_expires,
     }
 
-    # ── raw_runtime_logs: trimmed Docker sandbox behavioral output ──
+    #  raw_runtime_logs: trimmed Docker sandbox behavioral output 
     # Contains processes, accessed files, network observations,
     # HTTP requests, DNS queries, dynamic features, and behavioral
     # timeline events. Lists are trimmed to avoid Firestore size limits.
@@ -979,10 +708,10 @@ def main():
         "expires_at": raw_expires,
     }
 
-    # ── raw_ebpf_logs: full AWS EC2 eBPF analysis output ──
+    #  raw_ebpf_logs: full AWS EC2 eBPF analysis output 
     # Contains kernel-level syscall counts, opensnoop directory access
     # counts, C2 port detection results, and behavioral pattern features.
-    # Restricted — not accessible from the public dashboard client.
+    # Restricted  not accessible from the public dashboard client.
     raw_ebpf_doc = {
         "run_id": run_id,
         "package": package_file,
