@@ -1,3 +1,7 @@
+# ======================================
+# IMPORTS AND DEPENDENCIES
+# Load required libraries and security tools
+# ======================================
 import sys
 import os
 import json
@@ -9,6 +13,9 @@ import re
 import subprocess
 from datetime import datetime
 
+# ======================================
+# Enable YARA scanning if available
+# ======================================
 try:
     import yara
 except Exception:
@@ -21,13 +28,14 @@ from scripts.sap_feature_engine.pypi_feature_extractor import PyPI_Feature_Extra
 from scripts.sap_feature_engine.npm_feature_extractor import NPM_Feature_Extractor
 
 # ======================================
-# PATHS
+# MODEL AND PREPROCESSOR PATHS
 # ======================================
 model_path     = "ml/malicious_model.pkl"
 preprocess_path = "ml/preprocess.pkl"
 
 # ======================================
-# INPUT
+# READ PACKAGE INPUT
+# Get target package from command line
 # ======================================
 if len(sys.argv) < 2:
     print("Usage: python -m scripts.run_analysis <file_or_folder>")
@@ -48,9 +56,6 @@ def extract_package_if_needed(path):
 
 file_path = extract_package_if_needed(original_input)
 
-# ======================================
-# BUILD PACKAGE STRUCTURE
-# ======================================
 
 # Package root is the extracted package directory
 package_root = file_path
@@ -237,7 +242,7 @@ rule Suspicious_Imports_Indicators {
 """
 
 _yara_compiled = None
-
+# Compile and cache YARA rules
 def get_yara_rules():
     global _yara_compiled
     if yara is None:
@@ -249,7 +254,7 @@ def get_yara_rules():
             print(f"[yara] Rule compile failed: {e}")
     return _yara_compiled
 
-
+# Run YARA against package source files
 def run_yara_on_package(package_dir):
     """
     Runs YARA on all .py and .js files in package_dir.
