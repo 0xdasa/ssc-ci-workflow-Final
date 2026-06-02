@@ -490,7 +490,7 @@ features["semgrep_has_subprocess"]      = int(semgrep_results.get("semgrep_has_s
 features["semgrep_has_network_request"] = int(semgrep_results.get("semgrep_has_network_request", "False") == "True")
 features["semgrep_has_secret_access"]   = int(semgrep_results.get("semgrep_has_secret_access",   "False") == "True")
 
-print(f"[features] YARA+Semgrep loaded into features ✅")
+print(f"[features] YARA+Semgrep loaded into features ")
 
 # ======================================
 # LOAD MODEL
