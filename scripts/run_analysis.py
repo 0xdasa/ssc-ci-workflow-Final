@@ -498,7 +498,6 @@ print(f"[features] YARA+Semgrep loaded into features ")
 preprocess = joblib.load(preprocess_path)
 model      = joblib.load(model_path)
 
-# Pass original features to model — do NOT reorder before this
 X = preprocess.transform(features)
 
 pred  = int(model.predict(X)[0])
