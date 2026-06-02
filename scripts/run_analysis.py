@@ -538,7 +538,6 @@ except Exception as e:
 
 # ======================================
 # SERIALIZE FEATURES SAFELY
-# Reorder only for saving to log — AFTER prediction, model not affected
 # ======================================
 DATASET_COLUMN_ORDER = [
     "Package Repository", "Package Name",
