@@ -592,7 +592,7 @@ def analyze_package(pkg_name, run_number="0"):
         }, f, indent=2, ensure_ascii=False)
 
     print(f"[analyzer] Results saved at {log_path}")
-    print(f"[analyzer] Done ✅ {pkg_name}")
+    print(f"[analyzer] Done  {pkg_name}")
 
 
 # ── Main Watch Loop ──────────────────────────────────────────
